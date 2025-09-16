@@ -1,3 +1,0 @@
-epicsEnvSet("ARCH","linux-x86_64")
-epicsEnvSet("IOC","iocdgsSoftIOC")
-epicsEnvSet("TOP","/home/ryan/EPICS/softIOC")

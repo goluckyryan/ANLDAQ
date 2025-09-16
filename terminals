@@ -1,0 +1,58 @@
+#!/bin/bash -l
+
+# A scrPortt to allow the $EDM windows to start terminal windows for 
+# softioc, ioc and hopefully receivers.
+#
+# Each element in the system runs in an xterm that is running on the local 
+# machine where the scrPortt is first invoked.
+#
+# Because the xterms all are running locally it is easy to locate and kill 
+# them.  Because things are started remotely by calling the same scrPortt the
+# code is localized to a single file
+#
+
+softTop=${DGS_SYSTEM_DIR}/EPICS/softIOC
+terminalServer=${TERMINAL_SERVER}
+
+runNewSoftIOC() {
+   cd $softTop/iocBoot/iocdgsSoftIOC
+   pwd
+   var=$(ps ax | grep "T SoftIOC" | grep xterm)
+   var2=${var: -3}
+   if [[ $var2 = "cmd" ]] 
+   then echo "SoftIOC already running"; exit
+   fi
+   if [[ $var2 = "IOC" ]] 
+   then echo "New SoftIOC already running"; exit
+   fi     
+   echo "Spawning New SoftIOC"
+   gnome-terminal --title SoftIOC --window --geometry=100x30  -- bash -c " ../../bin/${EPICS_HOST_ARCH}/dgsSoftIOC dgsSoftIoc.cmd" &
+}
+
+
+if [ $# -eq 1 ]; then
+  cmd=$1
+
+   #export TERM=vt100
+   case $cmd in
+    "S") 
+        name="SoftIOC"
+        Port="none"
+        softIOC=true
+        ;;
+    *)
+        name="IOC$1"
+        Port=$((2000 + $1))
+        softIOC=false
+        ;;
+   esac
+   echo " terminal ${name}, Port = ${Port}" 
+
+   if [[ "${softIOC}" == true ]]; then
+     runNewSoftIOC
+   else
+     gnome-terminal --title="${name}" --window --geometry=100x100+0+0 -- bash -c "telnet ${terminalServer} ${Port}" &
+   fi
+
+fi
+

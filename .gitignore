@@ -1,3 +1,10 @@
 EPICS/softIOC/bin
 EPICS/softIOC/lib
 EPICS/softIOC/iocBoot/iocdgsSoftIOC/obsolete
+EPICS/softIOC/iocBoot/iocdgsSoftIOC/.iocsh_history
+EPICS/softIOC/db/dbExample*
+EPICS/softIOC/db/dbSubExample*
+EPICS/softIOC/db/user*
+EPICS/softIOC/dbd/xxx*
+O.linux*
+O.Common
