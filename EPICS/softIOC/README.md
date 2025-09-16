@@ -1,0 +1,1 @@
+need to edit the configure/RELEASE, hard code the EPICS_BASE
