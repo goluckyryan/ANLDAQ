@@ -1,5 +1,5 @@
 
-export DGS_SYSTEM_DIR=/home/ryan/ANLDAQ/
+export ANLDAQ_DIR=/home/ryan/ANLDAQ/
 export SYSTEM="SlopeBox"
 
 #============
@@ -10,7 +10,7 @@ fi
 
 if [ ${SYSTEM} == "SlopeBox" ]; then
   #export EPICS_CA_ADDR_LIST="vme99.onenet 192.168.203.28"
-  export EPICS_CA_ADDR_LIST="192.168.203.75 192.168.203.28"
+  export EPICS_CA_ADDR_LIST="192.168.203.75 vme99.onenet"
   export EPICS_CA_AUTO_ADDR_LIST=NO
   export EPICS_CA_SERVER_PORT=5074
   export EPICS_CA_REPEATER_PORT=5075
@@ -18,8 +18,29 @@ if [ ${SYSTEM} == "SlopeBox" ]; then
 fi
 
 #============ EPICS base
-EPICS_base=${DGS_SYSTEM_DIR}/EPICS/base-7.0
+EPICS_base=${ANLDAQ_DIR}/EPICS/base-7.0
 
 export EPICS_HOST_ARCH="linux-x86_64"
 export EPICS_BASE=${EPICS_base}
-export PATH=${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH}
+
+case ":$PATH:" in
+  *":${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:"*) ;;
+  *) export PATH=${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH} ;;
+esac
+
+#============ for pyEPICS
+export PYEPICS_LIBCA=${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca.so
+
+#============ ECHO
+echo "============== Added Environment Variables =================="
+echo "             ANLDAQ_DIR: ${ANLDAQ_DIR}"
+echo "                 SYSTEM: ${SYSTEM}"
+echo "             EPICS_BASE: ${EPICS_BASE}"
+echo "        EPICS_HOST_ARCH: ${EPICS_HOST_ARCH}"
+echo "        TERMINAL_SERVER: ${TERMINAL_SERVER}"
+echo "     EPICS_CA_ADDR_LIST: ${EPICS_CA_ADDR_LIST}"
+echo "EPICS_CA_AUTO_ADDR_LIST: ${EPICS_CA_AUTO_ADDR_LIST}"
+echo "   EPICS_CA_SERVER_PORT: ${EPICS_CA_SERVER_PORT}"
+echo " EPICS_CA_REPEATER_PORT: ${EPICS_CA_REPEATER_PORT}"
+echo "          PYEPICS_LIBCA: ${PYEPICS_LIBCA}"
+echo "                   PATH: ${PATH}"

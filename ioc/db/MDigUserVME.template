@@ -1,0 +1,127 @@
+###################################################################
+###################  'ao' bitgroup process variables ##############
+###################################################################
+
+###################################################################
+###################  'ai' bitgroup process variables ##############
+###################################################################
+
+###################################################################
+###################  'bo' bitgroup process variables ##############
+###################################################################
+
+###################################################################
+###################  'bi' bitgroup process variables ##############
+###################################################################
+record(bi,"VME$(CRATE):$(BOARD):power_ok_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:fail;1:OK
+	field(ZNAM,"fail")	field(ONAM,"OK")	
+field(DESC,"overall power sensor")
+field(INP,"@asynMask($(BOARD),0,0x00000001,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+record(bi,"VME$(CRATE):$(BOARD):under_volt_stat_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:fail;1:OK
+	field(ZNAM,"fail")	field(ONAM,"OK")	
+field(DESC,"undervoltage")
+field(INP,"@asynMask($(BOARD),0,0x00000002,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+record(bi,"VME$(CRATE):$(BOARD):over_volt_stat_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:fail;1:OK
+	field(ZNAM,"fail")	field(ONAM,"OK")	
+field(DESC,"overvoltage")
+field(INP,"@asynMask($(BOARD),0,0x00000004,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+record(bi,"VME$(CRATE):$(BOARD):temp0_sensor_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:FAULT;1:OK
+	field(ZNAM,"FAULT")	field(ONAM,"OK")	
+field(DESC,"temp sensor")
+field(INP,"@asynMask($(BOARD),0,0x00000008,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+record(bi,"VME$(CRATE):$(BOARD):temp1_sensor_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:FAULT;1:OK
+	field(ZNAM,"FAULT")	field(ONAM,"OK")	
+field(DESC,"")
+field(INP,"@asynMask($(BOARD),0,0x00000010,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+record(bi,"VME$(CRATE):$(BOARD):temp2_sensor_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:FAULT;1:OK
+	field(ZNAM,"FAULT")	field(ONAM,"OK")	
+field(DESC,"")
+field(INP,"@asynMask($(BOARD),0,0x00000020,1)VME_MON_STATUS")
+}
+#-------------------------------------------------------
+
+###################################################################
+##################  'mbbo' bitgroup process variables #############
+###################################################################
+record(mbbo,"VME$(CRATE):$(BOARD):clk_select")
+{
+field(DTYP,"asynUInt32Digital")
+#  Source string : 0:S/D:0;1:OSC:1;2:S/D:2;3:AUX:3;
+	field(ZRST,"S/D")	field(ZRVL,"0")	field(ONST,"OSC")	field(ONVL,"1")	field(TWST,"S/D")	field(TWVL,"2")	field(THST,"AUX")	field(THVL,"3")	
+field(DESC,"clock selection")
+field(OUT,"@asynMask($(BOARD),0,0x00000003,1)vme_clk_ctrl")
+}
+#-------------------------------------------------------
+
+###################################################################
+##################  'mbbi' bitgroup process variables #############
+###################################################################
+record(mbbi,"VME$(CRATE):$(BOARD):clk_select_RBV")
+{
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+#  Source string : 0:S/D:0;1:OSC:1;2:S/D:2;3:AUX:3;
+	field(ZRST,"S/D")	field(ZRVL,"0")	field(ONST,"OSC")	field(ONVL,"1")	field(TWST,"S/D")	field(TWVL,"2")	field(THST,"AUX")	field(THVL,"3")	
+field(DESC,"clock selection")
+field(INP,"@asynMask($(BOARD),0,0x00000003,1)vme_clk_ctrl")
+}
+#-------------------------------------------------------
+
+###################################################################
+#################  'longout' bitgroup process variables ###########
+###################################################################
+
+###################################################################
+#################  'longin' bitgroup process variables ############
+###################################################################
+record(longin,"VME$(CRATE):$(BOARD):serial_num_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa0C00,1)SERIAL_NUMBER")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"")
+}
+#-------------------------------------------------------
+record(longin,"VME$(CRATE):$(BOARD):vme_code_revision_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa1010,1)SERIAL_NUMBER")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"")
+}
+#-------------------------------------------------------
+

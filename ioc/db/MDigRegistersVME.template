@@ -1,0 +1,54 @@
+###################################################################
+######################  'longin' process variables ################
+###################################################################
+record(longin,"VME$(CRATE):$(BOARD):vme_gp_ctrl_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa2000,1)vme_gp_ctrl")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"VME FPGA control registe")
+}
+#-------------------------------------------------------
+record(longin,"VME$(CRATE):$(BOARD):vme_clk_ctrl_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa2000,1)vme_clk_ctrl")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"VME FPGA clock control")
+}
+#-------------------------------------------------------
+record(longin,"VME$(CRATE):$(BOARD):VME_MON_STATUS_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa2000,1)VME_MON_STATUS")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"VME FPGA control registe")
+}
+#-------------------------------------------------------
+record(longin,"VME$(CRATE):$(BOARD):SERIAL_NUMBER_RBV")
+{
+field(INP,"@asynMask($(BOARD),0,0xaaaa2000,1)SERIAL_NUMBER")
+field(DTYP,"asynUInt32Digital")
+field(SCAN,"1 second")
+field(DESC,"VME FPGA control registe")
+}
+#-------------------------------------------------------
+
+###################################################################
+######################  'longout' process variables ###############
+###################################################################
+record(longout,"VME$(CRATE):$(BOARD):vme_gp_ctrl")
+{
+field(OUT,"@asynMask($(BOARD),0,0xaaaa2000,1)vme_gp_ctrl")
+field(DTYP,"asynUInt32Digital")
+field(DESC,"VME FPGA control registe")
+}
+#-------------------------------------------------------
+record(longout,"VME$(CRATE):$(BOARD):vme_clk_ctrl")
+{
+field(OUT,"@asynMask($(BOARD),0,0xaaaa2000,1)vme_clk_ctrl")
+field(DTYP,"asynUInt32Digital")
+field(DESC,"VME FPGA clock control")
+}
+#-------------------------------------------------------
+

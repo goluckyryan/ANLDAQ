@@ -8,3 +8,5 @@ EPICS/softIOC/db/user*
 EPICS/softIOC/dbd/xxx*
 O.linux*
 O.Common
+
+All_PV.json
