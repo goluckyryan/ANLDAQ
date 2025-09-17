@@ -78,12 +78,14 @@ def parse_template_with_macros(template_file, macros):
       if inside_block:
         block_lines.append(line)
 
-    ignoreFiled = ["DTYP", "SCAN", "DESC", "INP", "OUT", "DOL"]
+    ignoreFiled = ["DTYP", "SCAN", "DESC", "INP", "OUT", "DOL", "ESLO", "LINR", "EGU", "PREC", "PINI"]
 
     subField = []
     for field_match in field_pattern.finditer("\n".join(block_lines)):
       field_name = field_match.group(1)
       if field_name in ignoreFiled:
+        continue
+      if field_name.endswith("VL"):
         continue
       field_value = field_match.group(2)
       subField.append((field_name, field_value))
@@ -141,6 +143,8 @@ if __name__ == "__main__":
 
   all_results = []
   for file, macros in fileList:
+    if file == "db/daqCrate.template" or file == "db/asynDebug.template":
+      continue
     print("=============================")
     print(f"File: {file}, Macros: {macros}")
     results = parse_template_with_macros(file, macros)
@@ -152,8 +156,7 @@ if __name__ == "__main__":
     all_results.extend(results_dict)
 
   with open(json_filename, 'w') as jf:
-    for item in all_results:
-      jf.write(json.dumps(item, separators=(',', ': '), ensure_ascii=False) + '\n')
+    json.dump(all_results, jf, ensure_ascii=False, indent=2)
 
   print(f"Saved to {json_filename}")
 
