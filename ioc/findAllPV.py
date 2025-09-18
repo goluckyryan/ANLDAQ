@@ -78,7 +78,7 @@ def parse_template_with_macros(template_file, macros):
       if inside_block:
         block_lines.append(line)
 
-    ignoreFiled = ["DTYP", "SCAN", "DESC", "INP", "OUT", "DOL", "ESLO", "LINR", "EGU", "PREC", "PINI"]
+    ignoreFiled = ["DTYP", "SCAN", "DESC", "DOL", "ESLO", "LINR", "EGU", "PREC", "PINI"]
 
     subField = []
     for field_match in field_pattern.finditer("\n".join(block_lines)):
@@ -86,6 +86,9 @@ def parse_template_with_macros(template_file, macros):
       if field_name in ignoreFiled:
         continue
       if field_name.endswith("VL"):
+        continue
+      if field_name == "INP" or field_name == "OUT":
+        subField.append(("Type", field_name))
         continue
       field_value = field_match.group(2)
       subField.append((field_name, field_value))

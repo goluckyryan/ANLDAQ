@@ -58,3 +58,31 @@ class GFlagDisplay(QWidget):
     else:
       self.button.setStyleSheet("")
       self.button.setToolTip(self.fail_msg)
+
+
+#create a class of GTwoStateButton, it has two states, when clicked, it toggles between the two states
+class GTwoStateButton(QPushButton):
+  def __init__(self, text1, text2, parent=None, color="green"):
+    super().__init__(text1, parent)
+    self.text1 = text1
+    self.text2 = text2
+    self.state = False
+    self.clicked.connect(self.toggleState)
+    self.updateAppearance()
+    self.color = color
+
+  def toggleState(self):
+    self.state = not self.state
+    self.updateAppearance()
+
+  def updateAppearance(self):
+    if self.state:
+      self.setText(self.text2)
+      self.setStyleSheet("background-color: {}".format(self.color))
+    else:
+      self.setText(self.text1)
+      self.setStyleSheet("")
+
+  def setState(self, state: bool):
+    self.state = state
+    self.updateAppearance()
