@@ -268,7 +268,7 @@ class MainWindow(QMainWindow):
     print(f"Setting PV: {pv_name} to {value}")
     p.put(value)
 
-    time.sleep(2.0)
+    time.sleep(1.0)
 
     rbv_name = f"{pv_name}_RBV"
     rbv = epics.PV(rbv_name)

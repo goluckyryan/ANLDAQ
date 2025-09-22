@@ -13,3 +13,6 @@ O.Common
 All_PV.json
 
 __pycache__
+*.pyc
+
+test

@@ -28,6 +28,11 @@ case ":$PATH:" in
   *) export PATH=${EPICS_BASE}/bin/${EPICS_HOST_ARCH}:${PATH} ;;
 esac
 
+case ":$LD_LIBRARY_PATH:" in
+  *":${EPICS_BASE}/lib/${EPICS_HOST_ARCH}:"*) ;;
+  *) export LD_LIBRARY_PATH=${EPICS_BASE}/lib/${EPICS_HOST_ARCH}:${LD_LIBRARY_PATH} ;;
+esac
+
 #============ for pyEPICS
 export PYEPICS_LIBCA=${EPICS_BASE}/lib/${EPICS_HOST_ARCH}/libca.so
 
@@ -44,3 +49,5 @@ echo "   EPICS_CA_SERVER_PORT: ${EPICS_CA_SERVER_PORT}"
 echo " EPICS_CA_REPEATER_PORT: ${EPICS_CA_REPEATER_PORT}"
 echo "          PYEPICS_LIBCA: ${PYEPICS_LIBCA}"
 echo "                   PATH: ${PATH}"
+echo "        LD_LIBRARY_PATH: ${LD_LIBRARY_PATH}"
+echo "============================================================"
