@@ -7,6 +7,8 @@ from json2pv import GeneratePVLists
 
 DIG_CHANNEL_PV, DIG_BOARD_PV = GeneratePVLists('../ioc/All_PV.json')
 
+exit()
+
 print("##########################################################################")
 
 from class_dig import DIG

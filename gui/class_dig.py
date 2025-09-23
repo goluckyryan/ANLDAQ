@@ -7,15 +7,13 @@ class DIG():
 
   def Clear(self):
     self.CH_PV = []
-    self.VME_name = ""
-    self.Dig_name = ""
+    self.BD_name = ""
     self.NumChannels = 10
 
     self.CH_PV = None  # CH_PV[channel][pv_index]
 
-  def SetBoardID(self, vme_name, dig_name):
-    self.VME_name = vme_name
-    self.Dig_name = dig_name
+  def SetBoardID(self, bd_name):
+    self.BD_name = bd_name
 
   def SetCH_PV(self, ch_pv_list):
     # Ensure CH_PV is a 2D array with NumChannels rows
@@ -24,14 +22,20 @@ class DIG():
 
       for pv in ch_pv_list:
         pv_ch = copy(pv)
-        pv_ch.SetName(f"{self.VME_name}:{self.Dig_name}:{pv.name}{i}")
+        pv_ch.SetName(f"{self.BD_name}:{pv.name}{i}")
+        pv_ch.AddCallback()
         self.CH_PV[i].append(pv_ch)
 
   def SetBoard_PV(self, board_pv):
     self.Board_PV = []
     for pv in board_pv:
+
+      if pv.name.endswith("LiveTS"):
+        continue
+      
       pv_b = copy(pv)
-      pv_b.SetName(f"{self.VME_name}:{self.Dig_name}:{pv.name}")
+      pv_b.SetName(f"{self.BD_name}:{pv.name}")
+      pv_b.AddCallback()
       self.Board_PV.append(pv_b)
   
   def UpdateAllPVs(self):
