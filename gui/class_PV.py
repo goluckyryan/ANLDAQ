@@ -7,7 +7,7 @@ class PV():
 
   def Clear(self):
     self.name = ""
-    self.ReadOnly = False
+    self.RBV_exist = False
     self.Type = ""
     self.States = []
     self.value = None
@@ -16,8 +16,8 @@ class PV():
   def SetName(self, name):
     self.name = name
 
-  def SetReadOnly(self, ro: bool):
-    self.ReadOnly = ro
+  def SetRBVExist(self, ro: bool):
+    self.RBV_exist = ro
 
   def SetType(self, type_str):
     self.Type = type_str
@@ -28,14 +28,14 @@ class PV():
   def SetFullPV(self, name, type_str, ro, states):
     self.name = name
     self.Type = type_str
-    self.ReadOnly = ro
+    self.RBV_exist = ro
     self.States = states
 
   def NumStates(self) -> int:
     return len(self.States)
 
   def SetValue(self, value, sync = False):
-    if self.ReadOnly:
+    if self.RBV_exist:
       return
     
     if isinstance(value, str):
@@ -53,11 +53,14 @@ class PV():
 
   def GetValue(self, fromEPICS=False) -> str:
     if fromEPICS:
-      p = epics.PV(self.name+"_RBV")
+      if self.RBV_exist:
+        p = epics.PV(self.name+"_RBV")
+      else:
+        p = epics.PV(self.name)
       self.value = p.get()
       self.char_value = p.char_value
     else:
       return self.char_value
     
   def __str__(self):
-    return f"PV({self.name:40s}, Type={self.Type:3s}, ReadOnly={self.ReadOnly:d}, States={self.States})"
+    return f"PV({self.name:40s}, Type={self.Type:3s}, ReadOnly={self.RBV_exist:d}, States={self.States})"

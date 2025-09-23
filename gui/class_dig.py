@@ -28,9 +28,12 @@ class DIG():
         self.CH_PV[i].append(pv_ch)
 
   def SetBoard_PV(self, board_pv):
-    self.Board_PV = board_pv
+    self.Board_PV = []
+    for pv in board_pv:
+      pv_b = copy(pv)
+      pv_b.SetName(f"{self.VME_name}:{self.Dig_name}:{pv.name}")
+      self.Board_PV.append(pv_b)
   
-
   def UpdateAllPVs(self):
     for i in range(self.NumChannels):
       for pv in self.CH_PV[i]:

@@ -3,144 +3,9 @@
 import sys
 import time
 
-############################# load the json file to contains all PVs
-import json
+from json2pv import GeneratePVLists
 
-# Open and read the JSON file
-with open('../ioc/All_PV.json', 'r', encoding='utf-8') as f:
-  data = json.load(f)
-
-
-temp_DIG_BOARD_PV = []
-temp_DIG_CHANNEL_PV = []
-
-MTRG_BOARD_PV = []
-RTRG_BOARD_PV = []
-
-count = 0
-
-for item in data:
-
-  # print("----Processing item:", item)
-
-  if "MDIG" in item[0] or "SDIG" in item[0]:
-
-    subField = item[1]
-
-    isChannel = False
-    if "led_green_state" in item[0]:
-      pvFirst = item[0].split(":")[:-1]
-      pv = pvFirst[0]+ ":" + pvFirst[1] + ":led_green_state"
-      subField["RBV"] = "ONLY"
-      isChannel = True
-    
-    elif "led_red_state" in item[0]:
-      pvFirst = item[0].split(":")[:-1]
-      pv = pvFirst[0]+ ":" + pvFirst[1] + ":led_red_state"
-      subField["RBV"] = "ONLY"
-      isChannel = True
-
-    elif item[0][-1].isdigit():
-      pv = item[0][:-1]
-      isChannel = True
-    
-    elif item[0].endswith("RBV"):
-      pv = item[0][:-4]
-      if pv[-1].isdigit():
-        pv = pv[:-1]
-        subField["RBV"] = "ONLY"
-        isChannel = True
-      else:
-        # print( f"Board PV {count}: {item[0]} | {pv}" )
-        count += 1
-        isChannel = False
-
-    elif item[0].endswith("LONGOUT") or item[0].endswith("LONGIN"):
-      pv = item[0][:-7]
-      if pv[-1].isdigit():
-        pv = pv[:-1]
-        isChannel = True
-      else:
-        # print( f"Board PV {count}: {item[0]} | {pv}" )
-        count += 1
-        isChannel = False
-
-    else:
-      pv = item[0]
-      # print( f"Board PV {count}: {item[0]} | {pv}" )
-      count += 1
-      isChannel = False
-
-
-    # print("----Processing PV:", item[0], "isChannel=", isChannel)
-
-    if isChannel:
-
-      if pv not in [x[0] for x in temp_DIG_CHANNEL_PV]:
-        pv = (pv, subField) 
-        temp_DIG_CHANNEL_PV.append(pv)
-
-    else:
-
-      if pv not in [x[0] for x in temp_DIG_BOARD_PV]:
-        pv = (pv, subField)
-        # print("----Adding channel PV:", pv[0])
-        temp_DIG_BOARD_PV.append(pv)
-
-  elif "MTRG" in item[0]:
-    MTRG_BOARD_PV.append(item[0])
-
-  elif "RTR" in item[0]:
-    RTRG_BOARD_PV.append(item[0])
-
-print("##########################################################################")
-
-# for i,  pv in enumerate(temp_DIG_CHANNEL_PV):
-#   print(f"{i:03d} | {pv[0]:40s} | {pv[1]}")
- 
-for i,  pv in enumerate(temp_DIG_BOARD_PV):
-  print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
-
-print("##########################################################################")
-
-exit()
-
-#========================== check the pv[1] and reformate if needed
-from class_PV import PV
-
-DIG_CHANNEL_PV = []
-
-for i, pv in enumerate(temp_DIG_CHANNEL_PV):
-
-  pvName = pv[0].split(":")[-1]
-  if pvName.startswith("reg_") or pvName.startswith("regin_"):
-    continue
-
-  PV_obj = PV()
-  PV_obj.SetName(pvName)
-
-  field_names = [x for x in pv[1]]
-  field_value = [pv[1][x] for x in pv[1]]
-
-  states = []
-
-  for fn, fv in zip(field_names, field_value):
-    if fn == "Type":
-      PV_obj.SetType(fv)
-    elif fn == "RBV":
-      if fv == "ONLY":
-        PV_obj.SetReadOnly(True)
-      else:
-        PV_obj.SetReadOnly(False)
-    if fn.endswith("NAM") or fn.endswith("ST"):
-      PV_obj.AddState(fv)
-
-  DIG_CHANNEL_PV.append(PV_obj)
-
-
-for i,  pv in enumerate(DIG_CHANNEL_PV):
-  print(f"{i:03d} | {pv}")
-
+DIG_CHANNEL_PV, DIG_BOARD_PV = GeneratePVLists('../ioc/All_PV.json')
 
 print("##########################################################################")
 
@@ -148,16 +13,27 @@ from class_dig import DIG
 DIG1 = DIG()
 DIG1.SetBoardID("VME99", "MDIG1")
 DIG1.SetCH_PV(DIG_CHANNEL_PV)
+DIG1.SetBoard_PV(DIG_BOARD_PV)
 
+# for i, ch_pv in enumerate(DIG1.CH_PV[0]):
+#   print(f"PV {i:02d}: {ch_pv.name}")
 
-for i, ch_pv in enumerate(DIG1.CH_PV[0]):
-  print(f"PV {i:02d}: {ch_pv.name}")
+# for i, bd_pv in enumerate(DIG1.Board_PV):
+#   print(f"PV {i:02d}: {bd_pv.name}, {bd_pv.Type}, RBV_exist={bd_pv.RBV_exist}, States={bd_pv.States}")
 
 pv_id = 13
+print(f"=================== Reading PV {DIG_CHANNEL_PV[pv_id].name} for all channels:")
 
 for i in range(10):
   DIG1.CH_PV[i][pv_id].GetValue(fromEPICS=True)
-  print(f"Channel {i}: {DIG1.CH_PV[i][pv_id].name} = {DIG1.CH_PV[i][pv_id].value} = {DIG1.CH_PV[i][pv_id].char_value}")
+  print(f"Channel {i}: {DIG1.CH_PV[i][pv_id].value} = {DIG1.CH_PV[i][pv_id].char_value}")
+
+
+print("##########################################################################")
+for i , pv in enumerate(DIG1.Board_PV):
+  pv.GetValue(fromEPICS=True)
+  print(f"PV {i:02d}: {pv.name}, {pv.value} = {pv.char_value} | {pv.RBV_exist}")
+
 
 exit()
 
