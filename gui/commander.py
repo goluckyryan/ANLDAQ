@@ -98,6 +98,22 @@ class MainWindow(QMainWindow):
     self.mtrg_windows = None
 
   ############################################################################
+  def Close(self):
+    if self.board_windows is not None:
+      self.board_windows.close()
+      self.board_windows.deleteLater()
+      self.board_windows = None
+    if self.rtr_windows is not None:
+      self.rtr_windows.close()
+      self.rtr_windows.deleteLater()
+      self.rtr_windows = None
+    if self.mtrg_windows is not None:
+      self.mtrg_windows.close()
+      self.mtrg_windows.deleteLater()
+      self.mtrg_windows = None
+    self.close()
+
+
   def OnBoardChanged(self, index):
     if index == 0:
       return

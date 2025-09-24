@@ -92,3 +92,66 @@ class GTwoStateButton(QPushButton):
   def setState(self, state: bool):
     self.state = state
     self.updateAppearance()
+
+#create a class of GMapButton, it has 10 rows and 8 columns of buttons. Each Buttons has two states, when clicked, it toggles between the two states
+class GMapButton(QWidget):
+  def __init__(self, rows=10, cols=8, parent=None):
+    super().__init__(parent)
+    self.rows = rows
+    self.cols = cols
+    self.buttons = []
+
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    for i in range(rows):
+      row_buttons = []
+      for j in range(cols):
+        btn = GTwoStateButton("", "", self, color="green")
+        btn.setFixedWidth(20)
+        btn.setFixedHeight(20)
+        layout.addWidget(btn, i, j)
+        row_buttons.append(btn)
+      self.buttons.append(row_buttons)
+
+  def setButtonState(self, row: int, col: int, state: bool):
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      self.buttons[row][col].setState(state)
+
+  def getButtonState(self, row: int, col: int) -> bool:
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      return self.buttons[row][col].state
+    return False
+  
+
+#creaet a class of GArray that can be any widget.
+class GArray(QWidget):
+  def __init__(self, widget_class, rows=10, cols=8, parent=None):
+    super().__init__(parent)
+    self.rows = rows
+    self.cols = cols
+    self.widgets = []
+
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    for i in range(rows):
+      row_widgets = []
+      for j in range(cols):
+        widget = widget_class()
+        widget.setFixedWidth(40)
+        widget.setFixedHeight(20)
+        layout.addWidget(widget, i, j)
+        row_widgets.append(widget)
+      self.widgets.append(row_widgets)
+
+  def getWidget(self, row: int, col: int):
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      return self.widgets[row][col]
+    return None

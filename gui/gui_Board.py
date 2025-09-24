@@ -1,9 +1,10 @@
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget, QGroupBox
+from PyQt6.QtWidgets import QApplication
 
 from class_Board import Board
 from class_PV import PV  # Make sure to import PV if not already
 
-from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
+from custom_QClasses import GLineEdit, GTwoStateButton, GLabel, GMapButton
 from PyQt6.QtCore import QTimer
 
 class BoardPVWindow(QMainWindow):
@@ -25,6 +26,7 @@ class BoardPVWindow(QMainWindow):
     #=============================== GUI setup
     rowIndex = 0
     colIndex = 0
+    maxRows = 20
 
     if board.NumChannels > 0 and channelNo < 0:
       layout.addWidget(GLabel("Channel :"), rowIndex, colIndex)
@@ -35,19 +37,34 @@ class BoardPVWindow(QMainWindow):
       self.combo_chSel.setCurrentIndex(0)
       self.combo_chSel.currentIndexChanged.connect(self.OnChannelChanged)
       layout.addWidget(self.combo_chSel, rowIndex, colIndex + 1)
-
-    rowIndex += 1
+      rowIndex += 1
 
     if channelNo >= 0 and board.NumChannels > 0:
       pv_list = board.CH_PV[channelNo]
     else:
       pv_list = board.Board_PV
     
+    map_pv = ["XMAP_", "YMAP_", "DISCRIMINATOR_DELAY"]
+    self.hasMap = False
+
+    array_pv = ["DEN_", "GATED_THROTTLE", "LINK_", "Diag_", "LOCK_", "RAW_THROTTLE", "REN_", "RPwr_", "SLiL_", "SLoL_", "SYNC_", "TPwr_", "FIFOReset", "ILM", "LED", "LRUCtl" ]
+    self.hasArray = False
 
     for i, pv in enumerate(pv_list):
       if not isinstance(pv, PV):
         continue
       pvName = pv.name.split(":")[-1]
+
+      if any(pvName.startswith(prefix) for prefix in map_pv):
+        if not self.hasMap:
+          self.hasMap = True
+        continue
+
+      if any(pvName.startswith(prefix) for prefix in array_pv):
+        if not self.hasArray:
+          self.hasArray = True
+        continue
+
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
       if pv.NumStates() == 2:
         btn = GTwoStateButton(pv.States[0], pv.States[1])
@@ -80,10 +97,29 @@ class BoardPVWindow(QMainWindow):
         layout.addWidget(le, rowIndex, colIndex + 1)
 
       rowIndex += 1
-      if rowIndex >= 20:
+      if rowIndex >= maxRows:
         rowIndex = 0
         colIndex += 2
       
+
+    rowIndex = 0
+    colIndex += 2
+    if self.hasMap:
+      groupBox_map = QGroupBox("Mapping")
+      map_layout = QGridLayout()
+      groupBox_map.setLayout(map_layout)
+      layout.addWidget(groupBox_map, rowIndex, colIndex, maxRows, 8 )
+
+      map_layout.addWidget(GLabel("X Map:"), 0, 0)
+      self.xMap = GMapButton(parent=self)
+      map_layout.addWidget(self.xMap, 0, 1)
+
+      self.yMap = GMapButton(parent=self)
+      map_layout.addWidget(GLabel("Y Map:"), 1, 0)
+      map_layout.addWidget(self.yMap, 1, 1)
+
+    # Set focus to none after GUI setup
+    QApplication.focusWidget().clearFocus()
 
     #=============================== End of GUI setup
 
