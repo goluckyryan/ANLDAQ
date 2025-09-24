@@ -26,6 +26,14 @@ DIG1.SetBoardID(DIG_BOARD_LIST[0])
 DIG1.SetCH_PV(10, DIG_CHANNEL_PV)
 DIG1.SetBoard_PV(DIG_BOARD_PV)
 
+RTR1 = Board()
+RTR1.SetBoardID(RTR_BOARD_LIST[0])
+RTR1.SetBoard_PV(RTR_BOARD_PV)
+
+MTRG1 = Board()
+MTRG1.SetBoardID(MTRG_BOARD_LIST[0])
+MTRG1.SetBoard_PV(MTRG_BOARD_PV)
+
 # ############################# PYEPICS
 # import epics
 # epics.ca.initialize_libca()
@@ -63,27 +71,85 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.currentIndexChanged.connect(self.OnBoardChanged)
     grid_layout.addWidget(self.comboBox_bd, rowIdx, 1)
 
+
+    rowIdx += 1
+    grid_layout.addWidget(GLabel("RTR Board:"), rowIdx, 0)
+    self.comboBox_rtr = QComboBox()
+    self.comboBox_rtr.addItem("Select Board")
+    self.comboBox_rtr.addItems(RTR_BOARD_LIST)
+    self.comboBox_rtr.setCurrentIndex(0)
+    self.comboBox_rtr.currentIndexChanged.connect(self.OnBoardChanged_rtr)
+    grid_layout.addWidget(self.comboBox_rtr, rowIdx, 1)
+
+
+    # rowIdx += 1
+    # grid_layout.addWidget(GLabel("MTRG Board:"), rowIdx, 0)
+    # self.comboBox_mtrg = QComboBox()
+    # self.comboBox_mtrg.addItem("Select Board")
+    # self.comboBox_mtrg.addItems(MTRG_BOARD_LIST)
+    # self.comboBox_mtrg.setCurrentIndex(0)
+    # self.comboBox_mtrg.currentIndexChanged.connect(self.OnBoardChanged_mtrg)
+    # grid_layout.addWidget(self.comboBox_mtrg, rowIdx, 1)
+
     #=============================== end of GUI setup
 
     self.board_windows = None
+    self.rtr_windows = None
+    self.mtrg_windows = None
 
+  ############################################################################
   def OnBoardChanged(self, index):
     if index == 0:
       return
+    
     bd_name = self.comboBox_bd.currentText()
+    self.comboBox_bd.setCurrentIndex(0)    
     print(f"Board changed to {index}: {bd_name}")
-    self.comboBox_bd.setCurrentIndex(0)
 
-    # Check if a BoardPVWindow for this board is already open
     if self.board_windows is not None:
+      self.board_windows.show()
       self.board_windows.raise_()
       self.board_windows.activateWindow()
+      self.board_windows.timer.start()  # Restart the timer
       return
 
-    # Show the board PVs in a new window
     self.board_windows = BoardPVWindow(bd_name, DIG1, -1, self)
     self.board_windows.show()
 
+  def OnBoardChanged_rtr(self, index):
+    if index == 0:
+      return
+    
+    bd_name = self.comboBox_rtr.currentText()
+    self.comboBox_rtr.setCurrentIndex(0)    
+    print(f"Board changed to {index}: {bd_name}")
+
+    # Check if the window exists and is visible
+    if self.rtr_windows is not None:
+      self.rtr_windows.show()
+      self.rtr_windows.raise_()
+      self.rtr_windows.activateWindow()
+      return
+
+    self.rtr_windows = BoardPVWindow(bd_name, RTR1, -1, self)
+    self.rtr_windows.show()
+    return
+
+  # def OnBoardChanged_mtrg(self, index):
+  #   if index == 0:
+  #     return
+    
+  #   bd_name = self.comboBox_mtrg.currentText()
+  #   self.comboBox_mtrg.setCurrentIndex(0)    
+  #   print(f"Board changed to {index}: {bd_name}")
+
+  #   if self.mtrg_windows is not None:
+  #     self.mtrg_windows.raise_()
+  #     self.mtrg_windows.activateWindow()
+  #     return
+
+  #   self.mtrg_windows = BoardPVWindow(bd_name, MTRG1, -1, self)
+  #   self.mtrg_windows.show()
 
 
 if __name__ == "__main__":

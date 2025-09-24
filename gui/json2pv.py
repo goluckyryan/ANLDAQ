@@ -130,8 +130,8 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
   # for i,  pv in enumerate(temp_DIG_CHANNEL_PV):
   #   print(f"{i:03d} | {pv[0]:40s} | {pv[1]}")
   
-  for i,  pv in enumerate(temp_DIG_BOARD_PV):
-    print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
+  # for i,  pv in enumerate(temp_DIG_BOARD_PV):
+  #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
   
   # for i,  pv in enumerate(temp_RTRG_BOARD_PV):
   #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")

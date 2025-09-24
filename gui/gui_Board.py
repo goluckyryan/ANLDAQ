@@ -99,7 +99,8 @@ class BoardPVWindow(QMainWindow):
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++
   def closeEvent(self, event):
     self.timer.stop()
-    super().closeEvent(event)
+    self.hide()
+    event.ignore()  # Prevent actual deletion
 
   def update_pvs(self):
     for i in range(len(self.centralWidget().layout())):
