@@ -1,22 +1,23 @@
 from class_PV import PV
 from copy import copy
 
-class DIG():
+class Board():
   def __init__(self):
     self.Clear()
 
   def Clear(self):
     self.CH_PV = []
     self.BD_name = ""
-    self.NumChannels = 10
+    self.NumChannels = 0
 
     self.CH_PV = None  # CH_PV[channel][pv_index]
 
   def SetBoardID(self, bd_name):
     self.BD_name = bd_name
 
-  def SetCH_PV(self, ch_pv_list):
+  def SetCH_PV(self, nCh, ch_pv_list):
     # Ensure CH_PV is a 2D array with NumChannels rows
+    self.NumChannels = nCh
     self.CH_PV = [[] for _ in range(self.NumChannels)]
     for i in range(self.NumChannels):
 

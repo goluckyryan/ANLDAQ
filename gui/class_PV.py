@@ -77,9 +77,10 @@ class PV():
     
   def on_change(self, **kw):
     self.value = kw['value']
-    self.char_value = kw['char_value']
+    # self.char_value = kw['char_value']
     self.isUpdated = True
-    # print(f"{self.name} changed to {self.char_value}, {isUpdated}")
+
+    # print(f"{self.name} changed to {self.value}, {self.isUpdated}")
 
   def __str__(self):
     return f"PV({self.name:40s}, Type={self.Type:3s}, RBV_exist={self.RBV_exist:d}, States={self.States})"

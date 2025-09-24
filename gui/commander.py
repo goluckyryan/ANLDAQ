@@ -18,10 +18,10 @@ for i, bd in enumerate(MTRG_BOARD_LIST):
 
 print("##########################################################################")
 
-from class_DIG import DIG
-DIG1 = DIG()
+from class_Board import Board
+DIG1 = Board()
 DIG1.SetBoardID(DIG_BOARD_LIST[0])
-DIG1.SetCH_PV(DIG_CHANNEL_PV)
+DIG1.SetCH_PV(10, DIG_CHANNEL_PV)
 DIG1.SetBoard_PV(DIG_BOARD_PV)
 
 # ############################# PYEPICS
@@ -35,7 +35,7 @@ from custom_QClasses import GLabel, GLineEdit, GFlagDisplay, GTwoStateButton
 from PyQt6.QtCore import QThread, QObject, pyqtSignal
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
 
-from class_DIG_GUI import BoardPVWindow
+from gui_Board import BoardPVWindow
 
 
 class MainWindow(QMainWindow):
@@ -63,15 +63,24 @@ class MainWindow(QMainWindow):
 
     #=============================== end of GUI setup
 
+    self.board_windows = None
+
   def OnBoardChanged(self, index):
-    bd_name = self.comboBox_bd.currentText()
     if index == 0:
       return
+    bd_name = self.comboBox_bd.currentText()
     print(f"Board changed to {index}: {bd_name}")
+    self.comboBox_bd.setCurrentIndex(0)
+
+    # Check if a BoardPVWindow for this board is already open
+    if self.board_windows is not None:
+      self.board_windows.raise_()
+      self.board_windows.activateWindow()
+      return
 
     # Show the board PVs in a new window
-    pv_window = BoardPVWindow(bd_name, DIG1, self)
-    pv_window.show()
+    self.board_windows = BoardPVWindow(bd_name, DIG1, -1, self)
+    self.board_windows.show()
 
 
 
