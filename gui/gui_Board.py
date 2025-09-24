@@ -51,7 +51,7 @@ class BoardPVWindow(QMainWindow):
         btn.setToolTip(pv.name)
         # if pv.Type == "OUT":
         #   btn.setEnabled(False)
-        # btn.clicked.connect(lambda checked, pv=pv, btn=btn: self.SetPV(pv, btn))
+        btn.clicked.connect(lambda checked, pv=pv, btn=btn: self.SetPV(pv, btn))
         layout.addWidget(btn, rowIndex, colIndex + 1)
 
       elif pv.NumStates() > 2: #use QComboBox
@@ -62,7 +62,7 @@ class BoardPVWindow(QMainWindow):
         combo.addItems(pv.States)
         # if pv.Type == "OUT":
         #   combo.setEnabled(False)
-        # combo.currentIndexChanged.connect(lambda index, pv=pv, combo=combo: self.SetPV(pv, combo))
+        combo.currentIndexChanged.connect(lambda index, pv=pv, combo=combo: self.SetPV(pv, combo))
         layout.addWidget(combo, rowIndex, colIndex + 1)
 
       else:
@@ -73,8 +73,9 @@ class BoardPVWindow(QMainWindow):
         le.setProperty("idx", i)
         # if pv.Type == "OUT":
         #   le.setReadOnly(True)
-        #   le.setStyleSheet("background-color: lightgray;")
+          # le.setStyleSheet("background-color: lightgray;")
         le.setText(str(pv.value))
+        le.returnPressed.connect(lambda pv=pv, le=le: self.SetPV(pv, le))
         layout.addWidget(le, rowIndex, colIndex + 1)
 
       rowIndex += 1
@@ -121,7 +122,23 @@ class BoardPVWindow(QMainWindow):
         elif isinstance(widget, QComboBox):
           widget.setCurrentIndex(value)
           widget.setStyleSheet("") 
-      
+  
+  def SetPV(self, pv, widget):
+    if isinstance(widget, GTwoStateButton):
+      pv.SetValue(int(widget.state))
+    elif isinstance(widget, QComboBox):
+      pv.SetValue(int(widget.currentIndex()))
+    elif isinstance(widget, GLineEdit):
+      text = widget.text()
+      try:
+        val = float(text)
+        if val.is_integer():
+          val = int(val)
+        pv.SetValue(val)
+        widget.setStyleSheet("") 
+      except ValueError:
+        widget.setStyleSheet("background-color: red;") 
+        return
 
   def OnChannelChanged(self, index):
     if index == 0:

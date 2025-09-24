@@ -45,21 +45,15 @@ class PV():
   def NumStates(self) -> int:
     return len(self.States)
 
-  def SetValue(self, value, sync = False):
-    if self.RBV_exist:
-      return
-    
-    if isinstance(value, str):
-      self.char_value = value
-    else:   
-      value = value
+  def SetValue(self, value, sync = False):    
+    self.value = value
     p = epics.PV(self.name)
     p.put(value, wait=sync)
+    print(f"Set PV {self.name} to {value}")
 
-    if isinstance(value, str):
-      self.value = p.value
-    else:
-      self.char_value = p.char_value
+    self.value = p.value
+    self.char_value = p.char_value
+    print(f"PV {self.name} now is {self.value}, {self.char_value}")
  
 
   def GetValue(self, fromEPICS=False) -> str:
