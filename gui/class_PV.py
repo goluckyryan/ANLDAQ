@@ -9,7 +9,7 @@ class PV():
   def Clear(self):
     self.name = ""
     self.RBV_exist = False
-    self.Type = ""
+    self.ReadONLY = False
     self.States = []
     self.value = None
     self.char_value = ""
@@ -19,11 +19,11 @@ class PV():
   def SetName(self, name):
     self.name = name
 
-  def SetRBVExist(self, ro: bool):
-    self.RBV_exist = ro
+  def SetRBVExist(self, rbv: bool):
+    self.RBV_exist = rbv
 
-  def SetType(self, type_str):
-    self.Type = type_str
+  def SetReadONLY(self, ro: bool):
+    self.ReadONLY = ro
 
   def AddState(self, state_str):
     self.States.append(state_str)
@@ -32,13 +32,14 @@ class PV():
     if self.RBV_exist:
       p = epics.PV(self.name+"_RBV")
     else:
-      p = epics.PV(self.name)    
+      p = epics.PV(self.name)
+    
     p.add_callback(self.on_change)
 
-  def SetFullPV(self, name, type_str, ro, states):
+  def SetFullPV(self, name,  ro, rbv, states):
     self.name = name
-    self.Type = type_str
-    self.RBV_exist = ro
+    self.ReadONLY = ro
+    self.RBV_exist = rbv
     self.States = states
     self.AddCallback()
 
@@ -46,10 +47,12 @@ class PV():
     return len(self.States)
 
   def SetValue(self, value, sync = False):    
+    if self.ReadONLY:
+      return
+    
     self.value = value
     p = epics.PV(self.name)
     p.put(value, wait=sync)
-    print(f"Set PV {self.name} to {value}")
 
     self.value = p.value
     self.char_value = p.char_value
@@ -77,4 +80,4 @@ class PV():
     # print(f"{self.name} changed to {self.value}, {self.isUpdated}")
 
   def __str__(self):
-    return f"PV({self.name:40s}, Type={self.Type:3s}, RBV_exist={self.RBV_exist:d}, States={self.States})"
+    return f"PV({self.name:40s}, ReadOnly={self.ReadONLY}, RBV_exist={self.RBV_exist}, States={self.States})"

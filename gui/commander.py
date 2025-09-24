@@ -7,6 +7,8 @@ from json2pv import GeneratePVLists
 
 DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST = GeneratePVLists('../ioc/All_PV.json')
 
+# exit()
+
 for i, bd in enumerate(DIG_BOARD_LIST):
   print(f"DIG  Board {i:>2d}: {bd}")
 

@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget
 
 from class_Board import Board
+from class_PV import PV  # Make sure to import PV if not already
 
 from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 from PyQt6.QtCore import QTimer
@@ -42,38 +43,38 @@ class BoardPVWindow(QMainWindow):
     else:
       pv_list = board.Board_PV
     
+
     for i, pv in enumerate(pv_list):
+      if not isinstance(pv, PV):
+        continue
       pvName = pv.name.split(":")[-1]
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
       if pv.NumStates() == 2:
-        btn = GTwoStateButton(pv.States[0], pv.States[1], color="green")
+        btn = GTwoStateButton(pv.States[0], pv.States[1])
         btn.setProperty("idx", i)
         btn.setToolTip(pv.name)
-        # if pv.Type == "OUT":
-        #   btn.setEnabled(False)
+        if pv.ReadONLY:
+          btn.setEnabled(False)
         btn.clicked.connect(lambda checked, pv=pv, btn=btn: self.SetPV(pv, btn))
         layout.addWidget(btn, rowIndex, colIndex + 1)
 
       elif pv.NumStates() > 2: #use QComboBox
-        layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
         combo = QComboBox()
         combo.setProperty("idx", i)
         combo.setToolTip(pv.name)
         combo.addItems(pv.States)
-        # if pv.Type == "OUT":
-        #   combo.setEnabled(False)
+        if pv.ReadONLY:
+          combo.setEnabled(False)
         combo.currentIndexChanged.connect(lambda index, pv=pv, combo=combo: self.SetPV(pv, combo))
         layout.addWidget(combo, rowIndex, colIndex + 1)
 
       else:
-
-        layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
         le = GLineEdit("")
         le.setToolTip(pv.name)
         le.setProperty("idx", i)
-        # if pv.Type == "OUT":
-        #   le.setReadOnly(True)
-          # le.setStyleSheet("background-color: lightgray;")
+        if pv.ReadONLY:
+          le.setReadOnly(True)
+          le.setStyleSheet("background-color: lightgray;")
         le.setText(str(pv.value))
         le.returnPressed.connect(lambda pv=pv, le=le: self.SetPV(pv, le))
         layout.addWidget(le, rowIndex, colIndex + 1)
@@ -93,6 +94,9 @@ class BoardPVWindow(QMainWindow):
     self.timer.timeout.connect(self.update_pvs)
     self.timer.start()
 
+    self.EnableConnect = True
+
+  #+++++++++++++++++++++++++++++++++++++++++++++++++++++
   def closeEvent(self, event):
     self.timer.stop()
     super().closeEvent(event)
@@ -109,21 +113,32 @@ class BoardPVWindow(QMainWindow):
       else:
         pv = self.Board.Board_PV[id]
 
+      if not isinstance(pv, PV):
+        continue
+
       if pv.isUpdated:
         # print(f"Checking PV {pv.name} = {pv.value}, isUpdated={pv.isUpdated}")
         value = pv.value
         pv.isUpdated = False
 
+        self.EnableConnect = False
+
         if isinstance(widget, GLineEdit):
           widget.setText(str(value))
-          widget.setStyleSheet("") 
+          widget.setStyleSheet("")
+          if pv.ReadONLY:
+            widget.setStyleSheet("background-color: lightgray;")
         elif isinstance(widget, GTwoStateButton):
-            widget.setState(value)
+          widget.setState(value)
         elif isinstance(widget, QComboBox):
           widget.setCurrentIndex(value)
           widget.setStyleSheet("") 
+
+        self.EnableConnect = True
   
   def SetPV(self, pv, widget):
+    if not self.EnableConnect:
+      return
     if isinstance(widget, GTwoStateButton):
       pv.SetValue(int(widget.state))
     elif isinstance(widget, QComboBox):

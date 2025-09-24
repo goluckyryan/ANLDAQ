@@ -26,13 +26,11 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
       if "led_green_state" in item[0]:
         pvFirst = item[0].split(":")[:-1]
         pv = pvFirst[0]+ ":" + pvFirst[1] + ":led_green_state"
-        subField["RBV"] = "Exist"
         isChannel = True
       
       elif "led_red_state" in item[0]:
         pvFirst = item[0].split(":")[:-1]
         pv = pvFirst[0]+ ":" + pvFirst[1] + ":led_red_state"
-        subField["RBV"] = "Exist"
         isChannel = True
 
       elif item[0][-1].isdigit():
@@ -41,7 +39,6 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
       
       elif item[0].endswith("RBV"):
         pv = item[0][:-4]
-        subField["RBV"] = "Exist"
         if pv[-1].isdigit():
           pv = pv[:-1]
           isChannel = True
@@ -94,14 +91,13 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
         if pv not in [x[0] for x in temp_DIG_BOARD_PV]:
           pv = (pv, subField)
-          # print("----Adding channel PV:", pv[0])
           temp_DIG_BOARD_PV.append(pv)
+
 
     elif "MTRG" in item[0]:
 
       if item[0].endswith("RBV"):
         pv = item[0][:-4]
-        subField["RBV"] = "Exist"
       elif item[0].endswith("LONGOUT"):
         pv = item[0][:-7]
       elif item[0].endswith("LONGIN"):
@@ -117,7 +113,6 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
       if item[0].endswith("RBV"):
         pv = item[0][:-4]
-        subField["RBV"] = "Exist"
       elif item[0].endswith("LONGOUT"):
         pv = item[0][:-7]
       elif item[0].endswith("LONGIN"):
@@ -135,8 +130,8 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
   # for i,  pv in enumerate(temp_DIG_CHANNEL_PV):
   #   print(f"{i:03d} | {pv[0]:40s} | {pv[1]}")
   
-  # for i,  pv in enumerate(temp_DIG_BOARD_PV):
-  #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
+  for i,  pv in enumerate(temp_DIG_BOARD_PV):
+    print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
   
   # for i,  pv in enumerate(temp_RTRG_BOARD_PV):
   #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
@@ -177,15 +172,18 @@ def FormatPVList(temp_PV_list):
     states = []
 
     for fn, fv in zip(field_names, field_value):
-      if fn == "Type":
-        PV_obj.SetType(fv)
-      elif fn == "RBV":
-        if fv == "Exist":
-          PV_obj.SetRBVExist(True)
-        else:
-          PV_obj.SetRBVExist(False)
       if fn.endswith("NAM") or fn.endswith("ST"):
         PV_obj.AddState(fv)
+
+    if "RBV" in pv[1] and pv[1]['RBV'] == "ONLY":
+      PV_obj.SetRBVExist(True)
+      PV_obj.SetReadONLY(True)
+    else:
+      PV_obj.SetReadONLY(False)
+
+    if "RBV" in pv[1] and pv[1]['RBV'] == "Exist":
+      PV_obj.SetRBVExist(True)
+      PV_obj.SetReadONLY(False)
 
     PV_list.append(PV_obj)
   

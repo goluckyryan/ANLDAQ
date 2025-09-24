@@ -111,6 +111,7 @@ def parse_template_with_macros(template_file, macros):
   # Add RBV records without base counterparts
   for base_name, (rbv_rec_name, rbv_fields) in rbv_map.items():
     if base_name not in base_names:
+      rbv_fields.append(("RBV", "ONLY"))
       merged_results.append((rbv_rec_name, rbv_fields))
 
   return merged_results

@@ -22,6 +22,9 @@ class Board():
     for i in range(self.NumChannels):
 
       for pv in ch_pv_list:
+        if not isinstance(pv, PV):
+          continue
+
         pv_ch = copy(pv)
         pv_ch.SetName(f"{self.BD_name}:{pv.name}{i}")
         pv_ch.AddCallback()
@@ -31,6 +34,9 @@ class Board():
     self.Board_PV = []
     for pv in board_pv:
 
+      if not isinstance(pv, PV):
+        continue
+
       if pv.name.endswith("LiveTS"):
         continue
       
@@ -38,10 +44,4 @@ class Board():
       pv_b.SetName(f"{self.BD_name}:{pv.name}")
       pv_b.AddCallback()
       self.Board_PV.append(pv_b)
-  
-  def UpdateAllPVs(self):
-    for i in range(self.NumChannels):
-      for pv in self.CH_PV[i]:
-        pv.GetValue(fromEPICS=True)
-    for pv in self.Board_PV:
-      pv.GetValue(fromEPICS=True)
+        

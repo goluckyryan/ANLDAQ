@@ -78,10 +78,16 @@ class GTwoStateButton(QPushButton):
   def updateAppearance(self):
     if self.state:
       self.setText(self.text2)
-      self.setStyleSheet("background-color: {}".format(self.color))
+      if self.isEnabled():
+        self.setStyleSheet(f"background-color: {self.color}")
+      else:
+        self.setStyleSheet(f"color: brown; background-color: {self.color}")
     else:
       self.setText(self.text1)
-      self.setStyleSheet("")
+      if self.isEnabled():
+        self.setStyleSheet("")
+      else:
+        self.setStyleSheet("color: brown")
 
   def setState(self, state: bool):
     self.state = state
