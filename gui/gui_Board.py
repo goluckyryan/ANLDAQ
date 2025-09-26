@@ -4,10 +4,10 @@ from PyQt6.QtWidgets import QApplication
 from class_Board import Board
 from class_PV import PV  # Make sure to import PV if not already
 
-from custom_QClasses import GLineEdit, GTwoStateButton, GLabel, GMapTwoStateButton, GMapSpinBox
-from PyQt6.QtCore import QTimer
+from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
+from PyQt6.QtCore import QTimer, Qt
 
-from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox
+from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RMapLineEdit
 
 class BoardPVWindow(QMainWindow):
   def __init__(self, board_name,  board : Board, channelNo = -1, parent=None):
@@ -50,9 +50,15 @@ class BoardPVWindow(QMainWindow):
     self.hasMap = False
     map_pvList = [[] for _ in range(len(map_pv))]
 
-    array_pv = ["DEN_", "GATED_THROTTLE", "LINK_", "Diag_", "LOCK_", "RAW_THROTTLE", "REN_", "RPwr_", "SLiL_", "SLoL_", "SYNC_", "TPwr_", "FIFOReset", "ILM", "LED", "LRUCtl" ]
-    self.hasArray = False
-    array_pvList = [[] for _ in range(len(array_pv))]
+    link_pv = [ "LOCK_",  "DEN_",  "REN_",  "SYNC_", "RPwr_", "TPwr_", "SLiL_", "SLoL_", "ILM_", "GATED_THROTTLE", "LINK_", 'RAW_THROTTLE' ]
+    self.hasLink = False
+    link_pvList = [[] for _ in range(len(link_pv))]
+
+    otherLock_pv = ["LOCK_ACK", "LOCK_ERROR", "LOCK_RETRY", "DEN_BUS", "REN_BUS", "SYNC_BUS"]
+
+    diag_pv = ["Diag_", "LOCK_COUNT" ]
+    self.hasDiag = False
+    diag_pvList = [[] for _ in range(len(diag_pv))]
 
     rtr_cArray_pv = ["CF"]
     self.hasRtrCArray = False
@@ -72,12 +78,12 @@ class BoardPVWindow(QMainWindow):
             map_pvList[j].append(pv)
         continue
 
-      if any(pvName.startswith(prefix) for prefix in array_pv) and pvName != "DEN_BUS":
-        if not self.hasArray:
-          self.hasArray = True
-        for j , array_pv_item in enumerate(array_pv):
+      if any(pvName.startswith(prefix) for prefix in link_pv) and not pvName.startswith("LOCK_COUNT") and pvName not in otherLock_pv:
+        if not self.hasLink:
+          self.hasLink = True
+        for j , array_pv_item in enumerate(link_pv):
           if pvName.startswith(array_pv_item):
-            array_pvList[j].append(pv)
+            link_pvList[j].append(pv)
         continue
 
       if any(pvName.startswith(prefix) for prefix in rtr_cArray_pv):
@@ -86,6 +92,14 @@ class BoardPVWindow(QMainWindow):
         for j , rtr_cArray_pv_item in enumerate(rtr_cArray_pv):
           if pvName.startswith(rtr_cArray_pv_item):
             rtr_cArray_pvList[j].append(pv)
+        continue
+
+      if any(pvName.startswith(prefix) for prefix in diag_pv):
+        if not self.hasDiag:
+          self.hasDiag = True
+        for j , diag_pv_item in enumerate(diag_pv):
+          if pvName.startswith(diag_pv_item):
+            diag_pvList[j].append(pv)
         continue
 
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
@@ -111,31 +125,63 @@ class BoardPVWindow(QMainWindow):
         colIndex += 2
     
     #========================== Special PVs widgets
-    rowIndex = 0
-    colIndex += 2
     if self.hasMap:
+      rowIndex = 0
+      colIndex += 2
+    
       groupBox_map = QGroupBox("Mapping")
       map_layout = QGridLayout()
       groupBox_map.setLayout(map_layout)
-      layout.addWidget(groupBox_map, rowIndex, colIndex, maxRows, 8 )
+      layout.addWidget(groupBox_map, rowIndex, colIndex, maxRows, 1 )
 
       map_layout.addWidget(QLabel("X Map:"), 0, 0)
-      self.xMap = GMapTwoStateButton(pvList = map_pvList[0], parent=self)
+      self.xMap = RMapTwoStateButton(pvList = map_pvList[0], parent=self)
       map_layout.addWidget(self.xMap, 1, 0)
 
       map_layout.addWidget(QLabel("Y Map:"), 2, 0)
-      self.yMap = GMapTwoStateButton(pvList = map_pvList[1], parent=self)
+      self.yMap = RMapTwoStateButton(pvList = map_pvList[1], parent=self)
       map_layout.addWidget(self.yMap, 3, 0)
 
-      # map_layout.addWidget(QLabel("Discriminator Delay:"), 0, 1)
-      # self.ddMap = GMapSpinBox(pvList = map_pvList[2], parent=self)
-      # map_layout.addWidget(self.ddMap, 1, 1)
+      map_layout.addWidget(QLabel("Discriminator Delay:"), 0, 1)
+      self.ddMap = RMapLineEdit(pvList = map_pvList[2], parent=self)
+      map_layout.addWidget(self.ddMap, 1, 1)
 
 
-    if self.hasArray:
+    if self.hasLink:
+      rowIndex = 0
+      colIndex += 2
 
-      for pv in array_pvList[0]:
-        print(f"Array PV: {pv.name}")
+      groupBox_Link = QGroupBox("Link")
+      link_layout = QGridLayout()
+      link_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+      groupBox_Link.setLayout(link_layout)
+      layout.addWidget(groupBox_Link, rowIndex, colIndex, maxRows, 1 )
+
+      self.linkWidgetList = []
+
+      subRowIndex = 0
+      for j , link_pv_item in enumerate(link_pv):
+        if j  > 0 :
+          showColLabel = False
+        else:
+          showColLabel = True
+        link = RMapTwoStateButton(pvList = link_pvList[j], customRowLabel= link_pv_item, rows=1, hasColLabel=showColLabel, cols=len(link_pvList[j]), parent=self)
+        if link_pv_item in ["LOCK_", "ILM_", "RAW_THROTTLE"]:
+          link.SetInvertStateColor(True)
+        link_layout.addWidget(link, subRowIndex, 0)
+        self.linkWidgetList.append(link)
+        subRowIndex += 1
+
+    if self.hasDiag:
+
+      self.diagWidgetList = []
+
+      for j , diag_pv_item in enumerate(diag_pv):
+        diag = RMapLineEdit(pvList = diag_pvList[j], rows=1, cols=len(diag_pvList[j]), parent=self)
+        link_layout.addWidget(diag, subRowIndex, 0)
+        subRowIndex += 1
+        self.diagWidgetList.append(diag)
+
 
 
     # Set focus to none after GUI setup
@@ -171,27 +217,15 @@ class BoardPVWindow(QMainWindow):
     if self.hasMap:
       self.xMap.UpdatePVs()
       self.yMap.UpdatePVs()
-      # self.ddMap.UpdatePVs()
-
+      self.ddMap.UpdatePVs()
   
-  def SetPV(self, pv, widget):
-    if not self.EnableConnect:
-      return
-    if isinstance(widget, GTwoStateButton):
-      pv.SetValue(int(widget.state))
-    elif isinstance(widget, QComboBox):
-      pv.SetValue(int(widget.currentIndex()))
-    elif isinstance(widget, GLineEdit):
-      text = widget.text()
-      try:
-        val = float(text)
-        if val.is_integer():
-          val = int(val)
-        pv.SetValue(val)
-        widget.setStyleSheet("") 
-      except ValueError:
-        widget.setStyleSheet("background-color: red;") 
-        return
+    if self.hasLink:
+      for link in self.linkWidgetList:
+        link.UpdatePVs()
+
+    if self.hasDiag:
+      for diag in self.diagWidgetList:
+        diag.UpdatePVs()
 
   def OnChannelChanged(self, index):
     if index == 0:
