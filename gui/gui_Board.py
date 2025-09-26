@@ -7,6 +7,8 @@ from class_PV import PV  # Make sure to import PV if not already
 from custom_QClasses import GLineEdit, GTwoStateButton, GLabel, GMapTwoStateButton, GMapSpinBox
 from PyQt6.QtCore import QTimer
 
+from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox
+
 class BoardPVWindow(QMainWindow):
   def __init__(self, board_name,  board : Board, channelNo = -1, parent=None):
     super().__init__(parent)
@@ -87,34 +89,20 @@ class BoardPVWindow(QMainWindow):
         continue
 
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
+
       if pv.NumStates() == 2:
-        btn = GTwoStateButton(pv.States[0], pv.States[1])
+        btn = RTwoStateButton(pv)
         btn.setProperty("idx", i)
-        btn.setToolTip(pv.name)
-        if pv.ReadONLY:
-          btn.setEnabled(False)
-        btn.clicked.connect(lambda checked, pv=pv, btn=btn: self.SetPV(pv, btn))
         layout.addWidget(btn, rowIndex, colIndex + 1)
 
-      elif pv.NumStates() > 2: #use QComboBox
-        combo = QComboBox()
+      elif pv.NumStates() > 2: #use RComboBox
+        combo = RComboBox(pv)
         combo.setProperty("idx", i)
-        combo.setToolTip(pv.name)
-        combo.addItems(pv.States)
-        if pv.ReadONLY:
-          combo.setEnabled(False)
-        combo.currentIndexChanged.connect(lambda index, pv=pv, combo=combo: self.SetPV(pv, combo))
         layout.addWidget(combo, rowIndex, colIndex + 1)
 
       else:
-        le = GLineEdit("")
-        le.setToolTip(pv.name)
+        le = RLineEdit(pv)
         le.setProperty("idx", i)
-        if pv.ReadONLY:
-          le.setReadOnly(True)
-          le.setStyleSheet("background-color: lightgray;")
-        le.setText(str(pv.value))
-        le.returnPressed.connect(lambda pv=pv, le=le: self.SetPV(pv, le))
         layout.addWidget(le, rowIndex, colIndex + 1)
 
       rowIndex += 1
@@ -177,33 +165,8 @@ class BoardPVWindow(QMainWindow):
       if id is None:
         continue
 
-      if self.channelNo >= 0 and self.Board.NumChannels > 0:
-        pv = self.Board.CH_PV[self.channelNo][id]
-      else:
-        pv = self.Board.Board_PV[id]
-
-      if not isinstance(pv, PV):
-        continue
-
-      if pv.isUpdated:
-        # print(f"Checking PV {pv.name} = {pv.value}, isUpdated={pv.isUpdated}")
-        value = pv.value
-        pv.isUpdated = False
-
-        self.EnableConnect = False
-
-        if isinstance(widget, GLineEdit):
-          widget.setText(str(value))
-          widget.setStyleSheet("")
-          if pv.ReadONLY:
-            widget.setStyleSheet("background-color: lightgray;")
-        elif isinstance(widget, GTwoStateButton):
-          widget.setState(value)
-        elif isinstance(widget, QComboBox):
-          widget.setCurrentIndex(value)
-          widget.setStyleSheet("") 
-
-        self.EnableConnect = True
+      if isinstance(widget, (RLineEdit, RTwoStateButton, RComboBox)):
+        widget.UpdatePV()
 
     if self.hasMap:
       self.xMap.UpdatePVs()

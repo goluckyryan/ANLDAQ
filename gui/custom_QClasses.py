@@ -1,5 +1,5 @@
 
-from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox
+from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox, QComboBox
 from PyQt6.QtCore import Qt
 
 from class_PV import PV
@@ -12,8 +12,8 @@ class GLabel(QLabel):
 
 #make a new GLineEdit class that inherits from QLineEdit. when text changed, set text color to be blue, when enter pressed, set text color to be black
 class GLineEdit(QLineEdit):
-  def __init__(self, text):
-    super().__init__(text)
+  def __init__(self, text, parent=None):
+    super().__init__(text, parent)
     self.textChanged.connect(self.on_text_changed)
     self.returnPressed.connect(self.on_return_pressed)
 
@@ -21,7 +21,66 @@ class GLineEdit(QLineEdit):
     self.setStyleSheet("color: blue")
 
   def on_return_pressed(self):
-    self.setStyleSheet("color: black")
+    self.setStyleSheet("")
+
+#create a class of GTwoStateButton, it has two states, when clicked, it toggles between the two states
+class GTwoStateButton(QPushButton):
+  def __init__(self, text1, text2, parent=None, color="green"):
+    super().__init__(text1, parent)
+    self.text1 = text1
+    self.text2 = text2
+    self.state = False
+    self.clicked.connect(self.toggleState)
+    self.updateAppearance()
+    self.color = color
+
+    self.disable_font_color = "brown"
+
+  def toggleState(self):
+    self.state = not self.state
+    self.updateAppearance()
+
+  def updateAppearance(self):
+    if self.state:
+      self.setText(self.text2)
+      if self.isEnabled():
+        self.setStyleSheet(f"background-color: {self.color}")
+      else:
+        self.setStyleSheet(f"color: {self.disable_font_color}; background-color: {self.color}")
+    else:
+      self.setText(self.text1)
+      if self.isEnabled():
+        self.setStyleSheet("")
+      else:
+        self.setStyleSheet(f"color: {self.disable_font_color};")
+
+  def setState(self, state: bool):
+    self.state = state
+    self.updateAppearance()
+
+
+class GComboBox(QComboBox):
+  def __init__(self, items, pv:PV = None, parent=None):
+    super().__init__(parent)
+    self.addItems(items)
+    self.pv = pv
+    self.currentIndexChanged.connect(self.on_index_changed)
+
+    self.setToolTip(pv.name if isinstance(pv, PV) else "")
+
+    if isinstance(pv, PV) and pv.ReadONLY:
+      self.setEnabled(False)
+
+    self.on_index_changed(self.currentIndex())
+
+  def on_index_changed(self, index):
+    if isinstance(self.pv, PV):
+      self.pv.SetValue(index)
+
+  def UpdatePV(self):
+    if isinstance(self.pv, PV) and self.pv.isUpdated:
+      self.setCurrentIndex(int(self.pv.value))
+      self.setStyleSheet("")
 
 
 #create a class for flag display, it has GLabel and Qpushbutton (disabled), if the flag is set, the button turns green
@@ -62,39 +121,6 @@ class GFlagDisplay(QWidget):
       self.button.setToolTip(self.fail_msg)
 
 
-#create a class of GTwoStateButton, it has two states, when clicked, it toggles between the two states
-class GTwoStateButton(QPushButton):
-  def __init__(self, text1, text2, parent=None, color="green"):
-    super().__init__(text1, parent)
-    self.text1 = text1
-    self.text2 = text2
-    self.state = False
-    self.clicked.connect(self.toggleState)
-    self.updateAppearance()
-    self.color = color
-
-  def toggleState(self):
-    self.state = not self.state
-    self.updateAppearance()
-
-  def updateAppearance(self):
-    if self.state:
-      self.setText(self.text2)
-      if self.isEnabled():
-        self.setStyleSheet(f"background-color: {self.color}")
-      else:
-        self.setStyleSheet(f"color: darkgray; background-color: {self.color}")
-    else:
-      self.setText(self.text1)
-      if self.isEnabled():
-        self.setStyleSheet("")
-      else:
-        self.setStyleSheet("color: darkgray;")
-
-  def setState(self, state: bool):
-    self.state = state
-    self.updateAppearance()
-  
 #creaet a class of GArray that can be any widget.
 class GArray(QWidget):
   def __init__(self, widget_class, rows=10, cols=8, parent=None):
@@ -179,7 +205,6 @@ class GMapTwoStateButton(QWidget):
     pv = self.pvList[id]
     if isinstance(pv, PV):
       pv.SetValue(int(state))
-
 
   def UpdatePVs(self):
     for i in range(self.rows):
