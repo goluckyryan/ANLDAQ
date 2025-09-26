@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget, QGroupBox, QLabel
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget, QGroupBox, QLabel, QPushButton
 from PyQt6.QtWidgets import QApplication
 
 from class_Board import Board
@@ -8,6 +8,14 @@ from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 from PyQt6.QtCore import QTimer, Qt
 
 from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RMapLineEdit
+
+from gui_RAM import RAMWindow
+
+import re
+
+def natural_key(s):
+  return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+
 
 class BoardPVWindow(QMainWindow):
   def __init__(self, board_name,  board : Board, channelNo = -1, parent=None):
@@ -60,9 +68,14 @@ class BoardPVWindow(QMainWindow):
     self.hasDiag = False
     diag_pvList = [[] for _ in range(len(diag_pv))]
 
-    rtr_cArray_pv = ["CF"]
+    rtr_cArray_pv = ["CF"] #TODO, add this to GUI
     self.hasRtrCArray = False
     rtr_cArray_pvList = [[] for _ in range(len(rtr_cArray_pv))]
+
+    not_ram_pv = ["VETO_RAM_ADDR_SRC", "TRIG_RAM_ADDR_SRC", "SWEEP_RAM_ADDR_SRC"]
+    ram_pv = ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"]
+    self.hasRam = False
+    self.ram_pvList = [[] for _ in range(len(ram_pv))]
 
     #========================== General PVs widgets
     for i, pv in enumerate(pv_list):
@@ -102,6 +115,14 @@ class BoardPVWindow(QMainWindow):
             diag_pvList[j].append(pv)
         continue
 
+      if any(pvName.startswith(prefix) for prefix in ram_pv) and pvName not in not_ram_pv:
+        if not self.hasRam:
+          self.hasRam = True
+        for j , ram_pv_item in enumerate(ram_pv):
+          if pvName.startswith(ram_pv_item):
+            self.ram_pvList[j].append(pv)
+        continue
+
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
 
       if pv.NumStates() == 2:
@@ -125,6 +146,18 @@ class BoardPVWindow(QMainWindow):
         colIndex += 2
     
     #========================== Special PVs widgets
+    if self.hasRam:
+      layout.addWidget(GLabel("RAM :"), rowIndex, colIndex)
+      self.combo_ramSel = QComboBox()
+      self.combo_ramSel.addItem("Select RAM")
+      for i in range(len(ram_pv)):
+        self.combo_ramSel.addItem(f"{ram_pv[i]}")
+        self.ram_pvList[i].sort(key=lambda pv: natural_key(pv.name))
+      self.combo_ramSel.setCurrentIndex(0)
+      self.combo_ramSel.currentIndexChanged.connect(self.OnRamChanged)
+      layout.addWidget(self.combo_ramSel, rowIndex, colIndex + 1)
+      rowIndex += 1
+
     if self.hasMap:
       rowIndex = 0
       colIndex += 2
@@ -190,6 +223,7 @@ class BoardPVWindow(QMainWindow):
     #=============================== End of GUI setup
 
     self.ch_window = [[] for _ in range(board.NumChannels)]
+    self.ram_window = [[] for _ in range(len(ram_pv))]
 
     self.timer = QTimer(self)
     self.timer.setInterval(500)  # check every 500 ms
@@ -242,3 +276,21 @@ class BoardPVWindow(QMainWindow):
 
     self.ch_window[chIdx] = BoardPVWindow(ch_name, self.Board, index -1, self)
     self.ch_window[chIdx].show()
+
+
+
+  def OnRamChanged(self, index):
+    if index == 0:
+      return
+    ram_name = f"{self.board_name} | {self.combo_ramSel.currentText()}"
+    self.combo_ramSel.setCurrentIndex(0)
+
+    ramIdx = index - 1
+    # Show the RAM PVs in a new window
+    if self.ram_window[ramIdx]:
+      self.ram_window[ramIdx].raise_()
+      self.ram_window[ramIdx].activateWindow()
+      return
+
+    self.ram_window[ramIdx] = RAMWindow(ram_name, self.ram_pvList[ramIdx], self)
+    self.ram_window[ramIdx].show()

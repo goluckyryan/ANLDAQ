@@ -101,10 +101,11 @@ class RMapTwoStateButton(QWidget):
     if hasColLabel :
       rowIdx = 0
       for j in range(cols):
-        if j < len(labName):
+        if cols < len(labName):
           lbl = GLabel(labName[j])
         else:
-          lbl = GLabel(chr(ord('A') + j)) 
+          # lbl = GLabel(chr(ord('A') + j)) 
+          lbl = GLabel(str(j))
 
         lbl.setFixedWidth(20)
         lbl.setFixedHeight(20)

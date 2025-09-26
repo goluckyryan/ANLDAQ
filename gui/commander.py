@@ -82,14 +82,14 @@ class MainWindow(QMainWindow):
     grid_layout.addWidget(self.comboBox_rtr, rowIdx, 1)
 
 
-    # rowIdx += 1
-    # grid_layout.addWidget(GLabel("MTRG Board:"), rowIdx, 0)
-    # self.comboBox_mtrg = QComboBox()
-    # self.comboBox_mtrg.addItem("Select Board")
-    # self.comboBox_mtrg.addItems(MTRG_BOARD_LIST)
-    # self.comboBox_mtrg.setCurrentIndex(0)
-    # self.comboBox_mtrg.currentIndexChanged.connect(self.OnBoardChanged_mtrg)
-    # grid_layout.addWidget(self.comboBox_mtrg, rowIdx, 1)
+    rowIdx += 1
+    grid_layout.addWidget(GLabel("MTRG Board:"), rowIdx, 0)
+    self.comboBox_mtrg = QComboBox()
+    self.comboBox_mtrg.addItem("Select Board")
+    self.comboBox_mtrg.addItems(MTRG_BOARD_LIST)
+    self.comboBox_mtrg.setCurrentIndex(0)
+    self.comboBox_mtrg.currentIndexChanged.connect(self.OnBoardChanged_mtrg)
+    grid_layout.addWidget(self.comboBox_mtrg, rowIdx, 1)
 
     #=============================== end of GUI setup
 
@@ -148,21 +148,21 @@ class MainWindow(QMainWindow):
     self.rtr_windows.show()
     return
 
-  # def OnBoardChanged_mtrg(self, index):
-  #   if index == 0:
-  #     return
+  def OnBoardChanged_mtrg(self, index):
+    if index == 0:
+      return
     
-  #   bd_name = self.comboBox_mtrg.currentText()
-  #   self.comboBox_mtrg.setCurrentIndex(0)    
-  #   print(f"Board changed to {index}: {bd_name}")
+    bd_name = self.comboBox_mtrg.currentText()
+    self.comboBox_mtrg.setCurrentIndex(0)    
+    print(f"Board changed to {index}: {bd_name}")
 
-  #   if self.mtrg_windows is not None:
-  #     self.mtrg_windows.raise_()
-  #     self.mtrg_windows.activateWindow()
-  #     return
+    if self.mtrg_windows is not None:
+      self.mtrg_windows.raise_()
+      self.mtrg_windows.activateWindow()
+      return
 
-  #   self.mtrg_windows = BoardPVWindow(bd_name, MTRG1, -1, self)
-  #   self.mtrg_windows.show()
+    self.mtrg_windows = BoardPVWindow(bd_name, MTRG1, -1, self)
+    self.mtrg_windows.show()
 
 
 if __name__ == "__main__":
