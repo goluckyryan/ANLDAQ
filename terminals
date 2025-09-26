@@ -11,7 +11,7 @@
 # code is localized to a single file
 #
 
-softTop=${DGS_SYSTEM_DIR}/EPICS/softIOC
+softTop=${ANLDAQ_DIR}/EPICS/softIOC
 terminalServer=${TERMINAL_SERVER}
 
 runNewSoftIOC() {

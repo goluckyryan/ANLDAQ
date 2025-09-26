@@ -56,7 +56,7 @@ class PV():
 
     self.value = p.value
     self.char_value = p.char_value
-    print(f"PV {self.name} now is {self.value}, {self.char_value}")
+    print(f"PV::SetValue() {self.name} now is {self.value}, {self.char_value}")
  
 
   def GetValue(self, fromEPICS=False) -> str:

@@ -1,10 +1,10 @@
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget, QGroupBox
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QComboBox, QWidget, QGroupBox, QLabel
 from PyQt6.QtWidgets import QApplication
 
 from class_Board import Board
 from class_PV import PV  # Make sure to import PV if not already
 
-from custom_QClasses import GLineEdit, GTwoStateButton, GLabel, GMapButton
+from custom_QClasses import GLineEdit, GTwoStateButton, GLabel, GMapTwoStateButton, GMapSpinBox
 from PyQt6.QtCore import QTimer
 
 class BoardPVWindow(QMainWindow):
@@ -46,10 +46,17 @@ class BoardPVWindow(QMainWindow):
     
     map_pv = ["XMAP_", "YMAP_", "DISCRIMINATOR_DELAY"]
     self.hasMap = False
+    map_pvList = [[] for _ in range(len(map_pv))]
 
     array_pv = ["DEN_", "GATED_THROTTLE", "LINK_", "Diag_", "LOCK_", "RAW_THROTTLE", "REN_", "RPwr_", "SLiL_", "SLoL_", "SYNC_", "TPwr_", "FIFOReset", "ILM", "LED", "LRUCtl" ]
     self.hasArray = False
+    array_pvList = [[] for _ in range(len(array_pv))]
 
+    rtr_cArray_pv = ["CF"]
+    self.hasRtrCArray = False
+    rtr_cArray_pvList = [[] for _ in range(len(rtr_cArray_pv))]
+
+    #========================== General PVs widgets
     for i, pv in enumerate(pv_list):
       if not isinstance(pv, PV):
         continue
@@ -58,11 +65,25 @@ class BoardPVWindow(QMainWindow):
       if any(pvName.startswith(prefix) for prefix in map_pv):
         if not self.hasMap:
           self.hasMap = True
+        for j , map_pv_item in enumerate(map_pv):
+          if pvName.startswith(map_pv_item):
+            map_pvList[j].append(pv)
         continue
 
-      if any(pvName.startswith(prefix) for prefix in array_pv):
+      if any(pvName.startswith(prefix) for prefix in array_pv) and pvName != "DEN_BUS":
         if not self.hasArray:
           self.hasArray = True
+        for j , array_pv_item in enumerate(array_pv):
+          if pvName.startswith(array_pv_item):
+            array_pvList[j].append(pv)
+        continue
+
+      if any(pvName.startswith(prefix) for prefix in rtr_cArray_pv):
+        if not self.hasRtrCArray:
+          self.hasRtrCArray = True
+        for j , rtr_cArray_pv_item in enumerate(rtr_cArray_pv):
+          if pvName.startswith(rtr_cArray_pv_item):
+            rtr_cArray_pvList[j].append(pv)
         continue
 
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
@@ -100,8 +121,8 @@ class BoardPVWindow(QMainWindow):
       if rowIndex >= maxRows:
         rowIndex = 0
         colIndex += 2
-      
-
+    
+    #========================== Special PVs widgets
     rowIndex = 0
     colIndex += 2
     if self.hasMap:
@@ -110,13 +131,24 @@ class BoardPVWindow(QMainWindow):
       groupBox_map.setLayout(map_layout)
       layout.addWidget(groupBox_map, rowIndex, colIndex, maxRows, 8 )
 
-      map_layout.addWidget(GLabel("X Map:"), 0, 0)
-      self.xMap = GMapButton(parent=self)
-      map_layout.addWidget(self.xMap, 0, 1)
+      map_layout.addWidget(QLabel("X Map:"), 0, 0)
+      self.xMap = GMapTwoStateButton(pvList = map_pvList[0], parent=self)
+      map_layout.addWidget(self.xMap, 1, 0)
 
-      self.yMap = GMapButton(parent=self)
-      map_layout.addWidget(GLabel("Y Map:"), 1, 0)
-      map_layout.addWidget(self.yMap, 1, 1)
+      map_layout.addWidget(QLabel("Y Map:"), 2, 0)
+      self.yMap = GMapTwoStateButton(pvList = map_pvList[1], parent=self)
+      map_layout.addWidget(self.yMap, 3, 0)
+
+      # map_layout.addWidget(QLabel("Discriminator Delay:"), 0, 1)
+      # self.ddMap = GMapSpinBox(pvList = map_pvList[2], parent=self)
+      # map_layout.addWidget(self.ddMap, 1, 1)
+
+
+    if self.hasArray:
+
+      for pv in array_pvList[0]:
+        print(f"Array PV: {pv.name}")
+
 
     # Set focus to none after GUI setup
     QApplication.focusWidget().clearFocus()
@@ -172,6 +204,12 @@ class BoardPVWindow(QMainWindow):
           widget.setStyleSheet("") 
 
         self.EnableConnect = True
+
+    if self.hasMap:
+      self.xMap.UpdatePVs()
+      self.yMap.UpdatePVs()
+      # self.ddMap.UpdatePVs()
+
   
   def SetPV(self, pv, widget):
     if not self.EnableConnect:

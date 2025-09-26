@@ -199,6 +199,12 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   RTR_BOARD_PV, RTR_BOARD_LIST = FormatPVList(temp_RTRG_BOARD_PV)
   MTRG_BOARD_PV, MTRG_BOARD_LIST = FormatPVList(temp_MTRG_BOARD_PV)
 
+  #------ sort PV_list based on the PV name
+  DIG_CHANNEL_PV.sort(key=lambda pv: pv.name)
+  DIG_BOARD_PV.sort(key=lambda pv: pv.name)
+  RTR_BOARD_PV.sort(key=lambda pv: pv.name)
+  MTRG_BOARD_PV.sort(key=lambda pv: pv.name)
+
   # for i,  pv in enumerate(DIG_CHANNEL_PV):
   #   print(f"{i:03d} | {pv}")
 
@@ -208,8 +214,15 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   # for i,  pv in enumerate(RTR_BOARD_PV):
   #   print(f"{i:03d} | {pv}")
 
+  # skip_pv = ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"]
+
+  # count = 0
   # for i,  pv in enumerate(MTRG_BOARD_PV):
-  #   print(f"{i:03d} | {pv}")
+  #   pvName = pv.name.split(":")[-1]
+  #   if any(pvName.startswith(prefix) for prefix in skip_pv):
+  #     continue
+  #   print(f"{i:03d} | {count:03d} | {pv}")
+  #   count += 1
   # print("##########################################################################")
 
   return DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST

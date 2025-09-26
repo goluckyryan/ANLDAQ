@@ -1,6 +1,8 @@
 
-from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget
+from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox
 from PyQt6.QtCore import Qt
+
+from class_PV import PV
 
 #make a new GLabel class that inherits from QLabel, and always has right alignment
 class GLabel(QLabel):
@@ -81,52 +83,18 @@ class GTwoStateButton(QPushButton):
       if self.isEnabled():
         self.setStyleSheet(f"background-color: {self.color}")
       else:
-        self.setStyleSheet(f"color: brown; background-color: {self.color}")
+        self.setStyleSheet(f"color: darkgray; background-color: {self.color}")
     else:
       self.setText(self.text1)
       if self.isEnabled():
         self.setStyleSheet("")
       else:
-        self.setStyleSheet("color: brown")
+        self.setStyleSheet("color: darkgray;")
 
   def setState(self, state: bool):
     self.state = state
     self.updateAppearance()
-
-#create a class of GMapButton, it has 10 rows and 8 columns of buttons. Each Buttons has two states, when clicked, it toggles between the two states
-class GMapButton(QWidget):
-  def __init__(self, rows=10, cols=8, parent=None):
-    super().__init__(parent)
-    self.rows = rows
-    self.cols = cols
-    self.buttons = []
-
-    layout = QGridLayout(self)
-    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
-    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
-    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
-    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-
-    for i in range(rows):
-      row_buttons = []
-      for j in range(cols):
-        btn = GTwoStateButton("", "", self, color="green")
-        btn.setFixedWidth(20)
-        btn.setFixedHeight(20)
-        layout.addWidget(btn, i, j)
-        row_buttons.append(btn)
-      self.buttons.append(row_buttons)
-
-  def setButtonState(self, row: int, col: int, state: bool):
-    if 0 <= row < self.rows and 0 <= col < self.cols:
-      self.buttons[row][col].setState(state)
-
-  def getButtonState(self, row: int, col: int) -> bool:
-    if 0 <= row < self.rows and 0 <= col < self.cols:
-      return self.buttons[row][col].state
-    return False
   
-
 #creaet a class of GArray that can be any widget.
 class GArray(QWidget):
   def __init__(self, widget_class, rows=10, cols=8, parent=None):
@@ -155,3 +123,136 @@ class GArray(QWidget):
     if 0 <= row < self.rows and 0 <= col < self.cols:
       return self.widgets[row][col]
     return None
+
+#create a class of GMapButton, it has 10 rows and 8 columns of buttons. Each Buttons has two states, when clicked, it toggles between the two states
+class GMapTwoStateButton(QWidget):
+  def __init__(self, pvList, rows=10, cols=8,  parent=None):
+    super().__init__(parent)
+    self.rows = rows
+    self.cols = cols
+    self.buttons = []
+    self.pvList = pvList
+
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    rowIdx = 0
+    for j in range(cols):
+      lbl = GLabel(chr(ord('A') + j)) 
+      lbl.setFixedWidth(20)
+      lbl.setFixedHeight(20)
+      layout.addWidget(lbl, rowIdx, j+1)
+
+    for i in range(rows):
+      rowIdx += 1
+      row_buttons = []
+      lbl = GLabel(str(i)) 
+      lbl.setFixedWidth(20)
+      lbl.setFixedHeight(20)
+      layout.addWidget(lbl, rowIdx, 0)
+      for j in range(cols):
+        btn = GTwoStateButton("", "", self, color="green")
+        btn.setFixedWidth(20)
+        btn.setFixedHeight(20)
+        btn.setProperty("id", j * rows + i)  # column-major order
+        btn.clicked.connect(self.onButtonClicked)
+        layout.addWidget(btn, rowIdx, j+1)
+        row_buttons.append(btn)
+      self.buttons.append(row_buttons)
+
+  def setButtonState(self, row: int, col: int, state: bool):
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      self.buttons[row][col].setState(state)
+
+  def getButtonState(self, row: int, col: int) -> bool:
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      return self.buttons[row][col].state
+    return False
+
+  def onButtonClicked(self):
+    btn = self.sender()
+    id = btn.property("id")
+    state = btn.state
+    pv = self.pvList[id]
+    if isinstance(pv, PV):
+      pv.SetValue(int(state))
+
+
+  def UpdatePVs(self):
+    for i in range(self.rows):
+      for j in range(self.cols):
+        idx = j * self.rows + i
+        if idx < len(self.pvList):
+          pv = self.pvList[idx]
+          if isinstance(pv, PV) and  pv.isUpdated:
+            state = bool(pv.value)
+            self.setButtonState(i, j, state)
+
+class GMapSpinBox(QWidget):
+  def __init__(self, pvList, rows=10, cols=8,  parent=None):
+    super().__init__(parent)
+    self.rows = rows
+    self.cols = cols
+    self.spinboxes = []
+    self.pvList = pvList
+
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    rowIdx = 0
+    for j in range(cols):
+      lbl = GLabel(chr(ord('A') + j)) 
+      lbl.setFixedWidth(30)
+      lbl.setFixedHeight(20)
+      layout.addWidget(lbl, rowIdx, j+1)
+
+    for i in range(rows):
+      rowIdx += 1
+      row_spinboxes = []
+      lbl = GLabel(str(i)) 
+      lbl.setFixedWidth(20)
+      lbl.setFixedHeight(20)
+      layout.addWidget(lbl, rowIdx, 0)
+      for j in range(cols):
+        spb = QSpinBox(self)
+        spb.setFixedWidth(40)
+        spb.setFixedHeight(20)
+        spb.setRange(0, 255)
+        spb.setProperty("id", j * rows + i)  # column-major order
+        spb.valueChanged.connect(self.onSpinBoxValueChanged)
+        layout.addWidget(spb, rowIdx, j+1)
+        row_spinboxes.append(spb)
+      self.spinboxes.append(row_spinboxes)
+
+  def setSpinBoxValue(self, row: int, col: int, value: int):
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      self.spinboxes[row][col].setValue(value)
+
+  def getSpinBoxValue(self, row: int, col: int) -> int:
+    if 0 <= row < self.rows and 0 <= col < self.cols:
+      return self.spinboxes[row][col].value()
+    return 0
+
+  def onSpinBoxValueChanged(self):
+    spb = self.sender()
+    id = spb.property("id")
+    value = int(spb.value())
+    pv = self.pvList[id]
+    if isinstance(pv, PV):
+      pv.SetValue(value)
+
+  def UpdatePVs(self):
+    for i in range(self.rows):
+      for j in range(self.cols):
+        idx = j * self.rows + i
+        if idx < len(self.pvList):
+          pv = self.pvList[idx]
+          if isinstance(pv, PV) and  pv.isUpdated:
+            value = int(pv.value)
+            self.setSpinBoxValue(i, j, value)
