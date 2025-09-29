@@ -16,6 +16,9 @@ import re
 def natural_key(s):
   return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
+def make_pattern_list(prefix_list):
+    return [re.compile(rf'^{prefix}_[A-Za-z]$') for prefix in prefix_list]
+
 
 class BoardPVWindow(QMainWindow):
   def __init__(self, board_name,  board : Board, channelNo = -1, parent=None):
@@ -36,7 +39,7 @@ class BoardPVWindow(QMainWindow):
     #=============================== GUI setup
     rowIndex = 0
     colIndex = 0
-    maxRows = 20
+    maxRows = int(40)
 
     if board.NumChannels > 0 and channelNo < 0:
       layout.addWidget(GLabel("Channel :"), rowIndex, colIndex)
@@ -58,24 +61,31 @@ class BoardPVWindow(QMainWindow):
     self.hasMap = False
     map_pvList = [[] for _ in range(len(map_pv))]
 
-    link_pv = [ "LOCK_",  "DEN_",  "REN_",  "SYNC_", "RPwr_", "TPwr_", "SLiL_", "SLoL_", "ILM_", "GATED_THROTTLE", "LINK_", 'RAW_THROTTLE' ]
+    link_pv = [ "LOCK",  "DEN",  "REN",  "SYNC", "RPwr", "TPwr", "SLiL", "SLoL", "ILM", "LINK", "GATED_THROTTLE", 'RAW_THROTTLE' ] # the last three only for RTR
     self.hasLink = False
     link_pvList = [[] for _ in range(len(link_pv))]
-
-    otherLock_pv = ["LOCK_ACK", "LOCK_ERROR", "LOCK_RETRY", "DEN_BUS", "REN_BUS", "SYNC_BUS"]
+    link_patterns = make_pattern_list(link_pv)
 
     diag_pv = ["Diag_", "LOCK_COUNT" ]
     self.hasDiag = False
     diag_pvList = [[] for _ in range(len(diag_pv))]
 
-    rtr_cArray_pv = ["CF"] #TODO, add this to GUI
-    self.hasRtrCArray = False
-    rtr_cArray_pvList = [[] for _ in range(len(rtr_cArray_pv))]
+    fifoReset_pv = ["FIFOReset"]
+    self.hasFifoReset = False
+    fifoReset_pvList = [[] for _ in range(len(fifoReset_pv))]
 
-    not_ram_pv = ["VETO_RAM_ADDR_SRC", "TRIG_RAM_ADDR_SRC", "SWEEP_RAM_ADDR_SRC"]
     ram_pv = ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"]
+    not_ram_pv = ["VETO_RAM_ADDR_SRC", "TRIG_RAM_ADDR_SRC", "SWEEP_RAM_ADDR_SRC"]
     self.hasRam = False
     self.ram_pvList = [[] for _ in range(len(ram_pv))]
+
+    mtrg_link_pv = ["LINK_L_PROPAGATE", "LINK_R_PROPAGATE", "LINK_U_PROPAGATE"]
+    self.hasMTRGLink = False
+    mtrg_link_pvList = [[] for _ in range(len(mtrg_link_pv))]
+
+    veto_pv = ["EN_NIM_VETO_", "EN_RAM_VETO_", "EN_REMTRIG_VETO_", "EN_SOFTWARE_VETO_", "EN_THROTTLE_VETO_"]
+    self.hasVeto = False
+    veto_pvList = [[] for _ in range(len(veto_pv))]
 
     #========================== General PVs widgets
     for i, pv in enumerate(pv_list):
@@ -91,20 +101,21 @@ class BoardPVWindow(QMainWindow):
             map_pvList[j].append(pv)
         continue
 
-      if any(pvName.startswith(prefix) for prefix in link_pv) and not pvName.startswith("LOCK_COUNT") and pvName not in otherLock_pv:
+      if any(pattern.match(pvName) for pattern in link_patterns):
         if not self.hasLink:
           self.hasLink = True
-        for j , array_pv_item in enumerate(link_pv):
-          if pvName.startswith(array_pv_item):
+        for j , link_pv_item in enumerate(link_pv):
+          if pvName.startswith(link_pv_item):
             link_pvList[j].append(pv)
         continue
 
-      if any(pvName.startswith(prefix) for prefix in rtr_cArray_pv):
-        if not self.hasRtrCArray:
-          self.hasRtrCArray = True
-        for j , rtr_cArray_pv_item in enumerate(rtr_cArray_pv):
-          if pvName.startswith(rtr_cArray_pv_item):
-            rtr_cArray_pvList[j].append(pv)
+
+      if any(pvName.startswith(prefix) for prefix in fifoReset_pv):
+        if not self.hasFifoReset:
+          self.hasFifoReset = True
+        for j , fifoReset_pv_item in enumerate(fifoReset_pv):
+          if pvName.startswith(fifoReset_pv_item):
+            fifoReset_pvList[j].append(pv)
         continue
 
       if any(pvName.startswith(prefix) for prefix in diag_pv):
@@ -121,6 +132,22 @@ class BoardPVWindow(QMainWindow):
         for j , ram_pv_item in enumerate(ram_pv):
           if pvName.startswith(ram_pv_item):
             self.ram_pvList[j].append(pv)
+        continue
+
+      if any(pvName.startswith(prefix) for prefix in mtrg_link_pv):
+        if not self.hasMTRGLink:
+          self.hasMTRGLink = True
+        for j , mtrg_link_pv_item in enumerate(mtrg_link_pv):
+          if pvName.startswith(mtrg_link_pv_item):
+            mtrg_link_pvList[j].append(pv)
+        continue
+
+      if any(pvName.startswith(prefix) for prefix in veto_pv):
+        if not self.hasVeto:
+          self.hasVeto = True
+        for j , veto_pv_item in enumerate(veto_pv):
+          if pvName.startswith(veto_pv_item):
+            veto_pvList[j].append(pv)
         continue
 
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
@@ -158,14 +185,108 @@ class BoardPVWindow(QMainWindow):
       layout.addWidget(self.combo_ramSel, rowIndex, colIndex + 1)
       rowIndex += 1
 
-    if self.hasMap:
+    if self.hasFifoReset:
+
+      groupBox_fifo = QGroupBox("FIFO Reset")
+      fifo_layout = QGridLayout()
+      groupBox_fifo.setLayout(fifo_layout)
+      layout.addWidget(groupBox_fifo, rowIndex, colIndex, 13, 1 )
+      rowIndex += 13      
+
+      self.fifoReset = RMapTwoStateButton(pvList = fifoReset_pvList[0], rows= len(fifoReset_pvList[0]), cols=1, clearText=False, hasRowLabel=True, hasColLabel=False, parent=self)
+      fifo_layout.addWidget(self.fifoReset, 0, 0)
+    
+    #------------------------- Link/Control
+    if self.hasLink:
       rowIndex = 0
       colIndex += 2
+
+      groupBox_Link = QGroupBox("Link")
+      link_layout = QGridLayout()
+      link_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+      groupBox_Link.setLayout(link_layout)
+      layout.addWidget(groupBox_Link, rowIndex, colIndex, int(maxRows/2), 1 )
+
+      self.linkWidgetList = []
+
+      subRowIndex = 0
+      for j , link_pv_item in enumerate(link_pv):
+        if j  > 0 :
+          showColLabel = False
+        else:
+          showColLabel = True
+        
+        if len(link_pvList[j]) == 0:
+          continue
+
+        link = RMapTwoStateButton(pvList = link_pvList[j], customRowLabel= link_pv_item, rowLabelLen=140, rows=1, hasColLabel=showColLabel, cols=len(link_pvList[j]), parent=self)
+        if link_pv_item in ["LOCK", "ILM", "RAW_THROTTLE"]:
+          link.SetInvertStateColor(True)
+        link_layout.addWidget(link, subRowIndex, 0)
+        self.linkWidgetList.append(link)
+        subRowIndex += 1
+
+
+    if self.hasDiag:
+
+      self.diagWidgetList = []
+
+      for j , diag_pv_item in enumerate(diag_pv):
+        if j  > 0 :
+          showColLabel = False
+        else:
+          showColLabel = True
+        diag = RMapLineEdit(pvList = diag_pvList[j], customRowLabel= diag_pv_item, rows=1, hasColLabel=showColLabel, cols=len(diag_pvList[j]), parent=self)
+        link_layout.addWidget(diag, subRowIndex, 0)
+        subRowIndex += 1
+        self.diagWidgetList.append(diag)
+
+    if self.hasMTRGLink:
+
+      self.mtrglinkWidgetList = []
+
+      for j , mtrg_link_pv_item in enumerate(mtrg_link_pv):
+        if j  > 0 :
+          showColLabel = False
+        else:
+          showColLabel = True
+        
+        if len(mtrg_link_pvList[j]) == 0:
+          continue
+
+        link = RMapTwoStateButton(pvList = mtrg_link_pvList[j], customRowLabel= mtrg_link_pv_item, rowLabelLen=160,rows=1, hasColLabel=showColLabel, cols=len(mtrg_link_pvList[j]), parent=self)
+        link_layout.addWidget(link, subRowIndex, 0)
+        self.mtrglinkWidgetList.append(link)
+        subRowIndex += 1
+
+    if self.hasVeto:
+
+      self.vetoWidgetList = []
+
+      for j , veto_pv_item in enumerate(veto_pv):
+        if j  > 0 :
+          showColLabel = False
+        else:
+          showColLabel = True
+        
+        if len(veto_pvList[j]) == 0:
+          continue
+
+        veto = RMapTwoStateButton(pvList = veto_pvList[j], customRowLabel= veto_pv_item, rowLabelLen=200, rows=1, hasColLabel=showColLabel, cols=len(veto_pvList[j]), parent=self)
+        link_layout.addWidget(veto, subRowIndex, 0)
+        self.vetoWidgetList.append(veto)
+        subRowIndex += 1
+
+    #------------------------- Mapping
+    if self.hasMap:
+      rowIndex = int(maxRows/2)
+      # colIndex += 2
     
       groupBox_map = QGroupBox("Mapping")
       map_layout = QGridLayout()
+      map_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
       groupBox_map.setLayout(map_layout)
-      layout.addWidget(groupBox_map, rowIndex, colIndex, maxRows, 1 )
+      layout.addWidget(groupBox_map, rowIndex, colIndex, int(maxRows/2), 1 )
 
       map_layout.addWidget(QLabel("X Map:"), 0, 0)
       self.xMap = RMapTwoStateButton(pvList = map_pvList[0], parent=self)
@@ -178,44 +299,6 @@ class BoardPVWindow(QMainWindow):
       map_layout.addWidget(QLabel("Discriminator Delay:"), 0, 1)
       self.ddMap = RMapLineEdit(pvList = map_pvList[2], parent=self)
       map_layout.addWidget(self.ddMap, 1, 1)
-
-
-    if self.hasLink:
-      rowIndex = 0
-      colIndex += 2
-
-      groupBox_Link = QGroupBox("Link")
-      link_layout = QGridLayout()
-      link_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-      groupBox_Link.setLayout(link_layout)
-      layout.addWidget(groupBox_Link, rowIndex, colIndex, maxRows, 1 )
-
-      self.linkWidgetList = []
-
-      subRowIndex = 0
-      for j , link_pv_item in enumerate(link_pv):
-        if j  > 0 :
-          showColLabel = False
-        else:
-          showColLabel = True
-        link = RMapTwoStateButton(pvList = link_pvList[j], customRowLabel= link_pv_item, rows=1, hasColLabel=showColLabel, cols=len(link_pvList[j]), parent=self)
-        if link_pv_item in ["LOCK_", "ILM_", "RAW_THROTTLE"]:
-          link.SetInvertStateColor(True)
-        link_layout.addWidget(link, subRowIndex, 0)
-        self.linkWidgetList.append(link)
-        subRowIndex += 1
-
-    if self.hasDiag:
-
-      self.diagWidgetList = []
-
-      for j , diag_pv_item in enumerate(diag_pv):
-        diag = RMapLineEdit(pvList = diag_pvList[j], rows=1, cols=len(diag_pvList[j]), parent=self)
-        link_layout.addWidget(diag, subRowIndex, 0)
-        subRowIndex += 1
-        self.diagWidgetList.append(diag)
-
-
 
     # Set focus to none after GUI setup
     QApplication.focusWidget().clearFocus()
@@ -260,6 +343,17 @@ class BoardPVWindow(QMainWindow):
     if self.hasDiag:
       for diag in self.diagWidgetList:
         diag.UpdatePVs()
+
+    if self.hasFifoReset:
+      self.fifoReset.UpdatePVs()
+
+    if self.hasMTRGLink:
+      for link in self.mtrglinkWidgetList:
+        link.UpdatePVs()
+
+    if self.hasVeto:
+      for veto in self.vetoWidgetList:
+        veto.UpdatePVs()
 
   def OnChannelChanged(self, index):
     if index == 0:

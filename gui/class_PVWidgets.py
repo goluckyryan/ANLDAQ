@@ -83,7 +83,9 @@ class RComboBox(QComboBox):
 
 
 class RMapTwoStateButton(QWidget):
-  def __init__(self, pvList, rows=10, cols=8, customRowLabel = None, hasRowLabel = True, hasColLabel = True, parent=None):
+  def __init__(self, pvList, rows=10, cols=8, 
+               customRowLabel = None, rowLabelLen=140, clearText = True,
+               hasRowLabel = True, hasColLabel = True, parent=None):
     super().__init__(parent)
     self.rows = rows
     self.cols = cols
@@ -120,6 +122,7 @@ class RMapTwoStateButton(QWidget):
       # for pv in pvList:
       #   print(f"Array PV: {pv.name}")
       hasRowLabel = True
+      # find the length of the longest row label
 
     for i in range(rows):
       rowIdx += 1
@@ -127,8 +130,8 @@ class RMapTwoStateButton(QWidget):
 
       if hasRowLabel:      
         if customRowLabel is not None:
-          lbl = QLabel(customRowLabel) 
-          lbl.setFixedWidth(120)
+          lbl = GLabel(customRowLabel + "  ") 
+          lbl.setFixedWidth(rowLabelLen)
           lbl.setFixedHeight(20)
           layout.addWidget(lbl, rowIdx, 0)
         else:
@@ -139,8 +142,11 @@ class RMapTwoStateButton(QWidget):
 
       for j in range(cols):
         btn = RTwoStateButton(pvList[j * rows + i], self, color="green")
-        btn.ClearTxt()
-        btn.setFixedWidth(20)
+        if clearText:
+          btn.ClearTxt()
+          btn.setFixedWidth(20)
+        else:
+          btn.setFixedWidth(80)
         btn.setFixedHeight(20)
         if hasRowLabel:
           layout.addWidget(btn, rowIdx, j+1)
@@ -161,7 +167,7 @@ class RMapTwoStateButton(QWidget):
 
 
 class RMapLineEdit(QWidget):
-  def __init__(self, pvList, rows=10, cols=8,  parent=None):
+  def __init__(self, pvList, rows=10, cols=8, customRowLabel = None, hasRowLabel = True, hasColLabel = True,  parent=None):
     super().__init__(parent)
     self.rows = rows
     self.cols = cols
@@ -175,24 +181,42 @@ class RMapLineEdit(QWidget):
     layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
 
     rowIdx = 0
-    for j in range(cols):
-      lbl = GLabel(chr(ord('A') + j)) 
-      lbl.setFixedWidth(30)
-      lbl.setFixedHeight(20)
-      layout.addWidget(lbl, rowIdx, j+1)
+    if hasColLabel :
+      for j in range(cols):
+        lbl = GLabel(chr(ord('A') + j)) 
+        lbl.setFixedWidth(30)
+        lbl.setFixedHeight(20)
+        layout.addWidget(lbl, rowIdx, j+1)
+    else:
+      rowIdx = -1
+
+    if customRowLabel is not None:
+      hasRowLabel = True
 
     for i in range(rows):
       rowIdx += 1
       row_lineedits = []
-      lbl = GLabel(str(i)) 
-      lbl.setFixedWidth(20)
-      lbl.setFixedHeight(20)
-      layout.addWidget(lbl, rowIdx, 0)
+
+      if hasRowLabel:
+        if customRowLabel is not None:
+          lbl = GLabel(customRowLabel + "  ") 
+          lbl.setFixedWidth(140)
+          lbl.setFixedHeight(20)
+          layout.addWidget(lbl, rowIdx, 0)
+        else:
+          lbl = GLabel(str(i)) 
+          lbl.setFixedWidth(20)
+          lbl.setFixedHeight(20)
+          layout.addWidget(lbl, rowIdx, 0)
+
       for j in range(cols):
         le = RLineEdit(pvList[j * rows + i], self)
         le.setFixedWidth(40)
         le.setFixedHeight(20)
-        layout.addWidget(le, rowIdx, j+1)
+        if hasRowLabel:
+          layout.addWidget(le, rowIdx, j+1)
+        else:
+          layout.addWidget(le, rowIdx, j)
         row_lineedits.append(le)
       self.lineedits.append(row_lineedits)
 

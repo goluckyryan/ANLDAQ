@@ -79,29 +79,6 @@ class GTwoStateButton(QPushButton):
     self.updateAppearance()
 
 
-class GComboBox(QComboBox):
-  def __init__(self, items, pv:PV = None, parent=None):
-    super().__init__(parent)
-    self.addItems(items)
-    self.pv = pv
-    self.currentIndexChanged.connect(self.on_index_changed)
-
-    self.setToolTip(pv.name if isinstance(pv, PV) else "")
-
-    if isinstance(pv, PV) and pv.ReadONLY:
-      self.setEnabled(False)
-
-    self.on_index_changed(self.currentIndex())
-
-  def on_index_changed(self, index):
-    if isinstance(self.pv, PV):
-      self.pv.SetValue(index)
-
-  def UpdatePV(self):
-    if isinstance(self.pv, PV) and self.pv.isUpdated:
-      self.setCurrentIndex(int(self.pv.value))
-      self.setStyleSheet("")
-
 
 #create a class for flag display, it has GLabel and Qpushbutton (disabled), if the flag is set, the button turns green
 #when mouse hovers over the button, display a tooltip message based on the flag state
