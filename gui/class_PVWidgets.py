@@ -224,3 +224,42 @@ class RMapLineEdit(QWidget):
     for i in range(self.rows):
       for j in range(self.cols):
         self.lineedits[i][j].UpdatePV()
+
+
+
+class RRegisterDisplay(QWidget):
+  def __init__(self, pv: PV, isRTR: bool, parent=None):
+    super().__init__(parent)
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    self.pv = pv
+
+    items = ["NIM in B", "NIM in A", "R Lock", "Fast Str", "CPLD 1", "CPLD 2", "CPLD 4", "CPLD 8", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "0", "0", "All Lock", "Lock Erro"]
+    if not isRTR:
+      items = ["NIM in B", "NIM in A", "R Lock", "Fast Str", "rsvd", "rsvd", "rsvd", "rsvd", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "Trig Veto", "0", "All Lock", "Lock Erro"]
+
+    self.btnList = []
+
+    row = 0
+    for i, name in enumerate(items):
+      layout.addWidget(GLabel(name + ":"), row, 0)
+
+      btn = GTwoStateButton("", "")
+      btn.setFixedWidth(20)
+      btn.setFixedHeight(20)
+      btn.setEnabled(False)
+      self.btnList.append(btn)
+      layout.addWidget(btn, row, 1)
+
+      row += 1
+
+  def UpdatePV(self):
+    if self.pv.isUpdated:
+      val = int(self.pv.value)
+      for i in range(16):
+        state = (val >> i) & 0x1
+        self.btnList[i].setState(state)

@@ -160,8 +160,9 @@ def FormatPVList(temp_PV_list):
     if bdName not in Board_list:
       Board_list.append(bdName)
 
-    if pvName.startswith("reg_") or pvName.startswith("regin_"):
-      continue
+    if pvName != "reg_MISC_STAT"  and pvName != "reg_MISC_STAT_REG":
+      if pvName.startswith("reg_") or pvName.startswith("regin_"):
+        continue
 
     PV_obj = PV()
     PV_obj.SetName(pvName)

@@ -7,7 +7,7 @@ from class_PV import PV  # Make sure to import PV if not already
 from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 from PyQt6.QtCore import QTimer, Qt
 
-from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RMapLineEdit
+from class_PVWidgets import RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RMapLineEdit, RRegisterDisplay
 
 from gui_RAM import RAMWindow
 
@@ -87,6 +87,12 @@ class BoardPVWindow(QMainWindow):
     self.hasVeto = False
     veto_pvList = [[] for _ in range(len(veto_pv))]
 
+    self.isRTR = False
+    rtrReg_pv = None
+    self.isMTRG = False
+    mtrgReg_pv = None
+
+
     #========================== General PVs widgets
     for i, pv in enumerate(pv_list):
       if not isinstance(pv, PV):
@@ -150,6 +156,16 @@ class BoardPVWindow(QMainWindow):
             veto_pvList[j].append(pv)
         continue
 
+      if pvName == "reg_MISC_STAT" :
+        self.isMTRG = True
+        mtrgReg_pv = pv
+        continue
+
+      if pvName == "reg_MISC_STAT_REG" :
+        self.isRTR = True
+        rtrReg_pv = pv
+        continue
+
       layout.addWidget(GLabel(f"{pvName}"), rowIndex, colIndex)
 
       if pv.NumStates() == 2:
@@ -191,10 +207,32 @@ class BoardPVWindow(QMainWindow):
       fifo_layout = QGridLayout()
       groupBox_fifo.setLayout(fifo_layout)
       layout.addWidget(groupBox_fifo, rowIndex, colIndex, 13, 1 )
-      rowIndex += 13      
 
       self.fifoReset = RMapTwoStateButton(pvList = fifoReset_pvList[0], rows= len(fifoReset_pvList[0]), cols=1, clearText=False, hasRowLabel=True, hasColLabel=False, parent=self)
       fifo_layout.addWidget(self.fifoReset, 0, 0)
+
+
+    if self.isRTR and rtrReg_pv is not None:
+      groupBox_reg = QGroupBox("RTR Status")
+      reg_layout = QGridLayout()
+      reg_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+      groupBox_reg.setLayout(reg_layout)
+      layout.addWidget(groupBox_reg, rowIndex, colIndex+1, 13, 1)
+
+      self.rtrReg = RRegisterDisplay(rtrReg_pv, True, parent=self)
+      reg_layout.addWidget(self.rtrReg, 0, 0)
+
+    if self.isMTRG and mtrgReg_pv is not None:
+      groupBox_reg = QGroupBox("MTRG Status")
+      reg_layout = QGridLayout()
+      reg_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+      groupBox_reg.setLayout(reg_layout)
+      layout.addWidget(groupBox_reg, rowIndex, colIndex+1, 13, 1)
+
+      self.mtrgReg = RRegisterDisplay(mtrgReg_pv, False, parent=self)
+      reg_layout.addWidget(self.mtrgReg, 0, 0)
+
+    rowIndex += 13      
     
     #------------------------- Link/Control
     if self.hasLink:
@@ -355,6 +393,12 @@ class BoardPVWindow(QMainWindow):
       for veto in self.vetoWidgetList:
         veto.UpdatePVs()
 
+    if self.isRTR:
+      self.rtrReg.UpdatePV()
+
+    if self.isMTRG:
+      self.mtrgReg.UpdatePV() 
+
   def OnChannelChanged(self, index):
     if index == 0:
       return
@@ -370,7 +414,6 @@ class BoardPVWindow(QMainWindow):
 
     self.ch_window[chIdx] = BoardPVWindow(ch_name, self.Board, index -1, self)
     self.ch_window[chIdx].show()
-
 
 
   def OnRamChanged(self, index):
