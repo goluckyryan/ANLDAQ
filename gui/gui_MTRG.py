@@ -1,14 +1,15 @@
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget, QTabWidget, QGroupBox, QPushButton, QFrame, QComboBox
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget, QTabWidget, QGroupBox, QPushButton, QFrame, QComboBox, QLabel
 from PyQt6.QtCore import Qt, QTimer
 
 from class_Board import Board
 from class_PV import PV
-from custom_QClasses import GLabel
+from custom_QClasses import GLabel, GArrow
 from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RLabelLineEdit, RSetButton
 from gui_RAM import RAMWindow
 import re
 
 from aux import make_pattern_list, natural_key
+
 
 ############################################################################################################
 class templateTab(QWidget):
@@ -266,11 +267,118 @@ class triggerControlTab(templateTab):
       self.pvWidgetList.append(frameU_widget)
       
     
-    #*-------------------------- Wheel Map
-    row = 0
-    col = 17
 
-    layout.addWidget(GLabel("Wheel Map"), row, col, 1, 2)
+#@========================================================================================
+class wheelRAMTab(templateTab):
+  def __init__(self, board : Board, parent=None):
+    super().__init__(board,parent)
+
+    layout = QGridLayout()
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    self.setLayout(layout)
+
+    #*-------------------------- AUX I/O Group Box
+    rowIdx = 0
+    colIdx = 0
+
+    groupBox_auxIO = QGroupBox("AUX I/O")
+    auxio_layout = QGridLayout()
+    auxio_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_auxIO.setLayout(auxio_layout)
+    layout.addWidget(groupBox_auxIO, rowIdx, colIdx, 6, 4)
+
+    # Direction labels and buttons
+    row = 0
+    auxio_layout.addWidget(GLabel("Direction"), row, 0, 1, 2)
+    auxio_layout.addWidget(GLabel("Bits 15:12"), row+1, 0)
+    auxio_layout.addWidget(GLabel("Bits 11:8"), row+2, 0)
+    auxio_layout.addWidget(GLabel("Bits 7:4"), row+3, 0)
+    auxio_layout.addWidget(GLabel("Bits 3:0"), row+4, 0)
+
+    bitA = RTwoStateButton(self.FindPV("A_7_4_DIR"), width=70, parent=self)
+    bitB = RTwoStateButton(self.FindPV("A_3_0_DIR"), width=70, parent=self)
+    bitC = RTwoStateButton(self.FindPV("B_7_4_DIR"), width=70, parent=self)
+    bitD = RTwoStateButton(self.FindPV("B_3_0_DIR"), width=70, parent=self)
+
+    auxio_layout.addWidget(bitA, row + 1, 1)
+    auxio_layout.addWidget(bitB, row + 2, 1)
+    auxio_layout.addWidget(bitC, row + 3, 1)
+    auxio_layout.addWidget(bitD, row + 4, 1)
+
+    self.pvWidgetList.append(bitA)
+    self.pvWidgetList.append(bitB)
+    self.pvWidgetList.append(bitC)
+    self.pvWidgetList.append(bitD)
+
+    # Serial/Parallel selection
+    row = 1
+    col = 2
+    serialOrParallel = RTwoStateButton(self.FindPV("SSI_ENABLE"), width=100, parent=self)
+    serialOrParallel.SetTexts("Serial", "Parallel")
+    serialOrParallel.setMaximumHeight(100)
+    serialOrParallel.stateChanged.connect(self.onSerialOrParallelChanged)
+    auxio_layout.addWidget(serialOrParallel, row, col, 4, 1)
+    self.pvWidgetList.append(serialOrParallel)
+
+    # SSI Input and Polarity
+    col = 3
+    row = 2
+    self.ssiInput = RComboBox(self.FindPV("SSI_InputSelect"), width=100, parent=self)
+    auxio_layout.addWidget(self.ssiInput, row, col, 1, 1)
+    self.pvWidgetList.append(self.ssiInput)
+
+    self.polarity = RTwoStateButton(self.FindPV("AUXPolaritySelect"), parent=self)
+    auxio_layout.addWidget(self.polarity, row + 1, col, 1, 2)
+    self.pvWidgetList.append(self.polarity)
+
+    # Transmission Length
+    col = 4
+    row = 1
+    auxio_layout.addWidget(GLabel("Trans. Len. [bit]"), row, col, 1, 1, alignment=Qt.AlignmentFlag.AlignBottom)
+    self.ssiTransLen = RLineEdit(self.FindPV("SSI_TransLen"), width=100, parent=self)
+    auxio_layout.addWidget(self.ssiTransLen, row + 1, col, 1, 1)
+    self.pvWidgetList.append(self.ssiTransLen)
+
+    # Encode Filter Time
+    col = 5
+    row = 0
+    auxio_layout.addWidget(GLabel("Encode\nFilter Time"), row, col, 3, 1)
+    encodeFilterTime = RLineEdit(self.FindPV("EncFilterTimePHYS"), width=100, parent=self)
+    self.pvWidgetList.append(encodeFilterTime)
+    auxio_layout.addWidget(encodeFilterTime, row + 2, col, 2, 1)
+
+
+    #*-------------------------- Other Controls
+    rowIdx = 6
+    colIdx = 3
+    layout.addWidget(GLabel("Manual Data"), rowIdx, colIdx, 1, 1)
+    manualData = RLineEdit(self.FindPV("ENCODER_MANUAL_DATA"), width=100, parent=self)
+    self.pvWidgetList.append(manualData)
+    layout.addWidget(manualData, rowIdx + 1, colIdx, 1, 1)
+
+    rowIdx = 8
+    layout.addWidget(GLabel("Int. Freq."), rowIdx, colIdx, 1, 1)
+    intFreq = RComboBox(self.FindPV("SLOW_CLOCK_SEL"), width=100, parent=self)
+    self.pvWidgetList.append(intFreq)
+    layout.addWidget(intFreq, rowIdx + 1, colIdx, 1, 1)
+
+    roll99 = RTwoStateButton(self.FindPV("COUNTER_ROLL_999"), width=100, parent=self)
+    roll99.SetTexts("Roll 999", "Roll 1023")
+    self.pvWidgetList.append(roll99)
+    layout.addWidget(roll99, rowIdx + 1, colIdx-1, 1, 1)
+
+    #*-------------------------- Add Group for RAM
+    rowIdx = 0
+    colIdx = 4
+    groupBox_auxIO = QGroupBox("Wheel RAM Controls")
+    ram_layout = QGridLayout()
+    ram_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_auxIO.setLayout(ram_layout)
+    layout.addWidget(groupBox_auxIO, rowIdx, colIdx, 10, 1)
+
+    row = 0
+    col = 0
+    ram_layout.addWidget(GLabel("Wheel Map"), row, col)
 
     ram_pv = ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"]
     not_ram_pv = ["VETO_RAM_ADDR_SRC", "TRIG_RAM_ADDR_SRC", "SWEEP_RAM_ADDR_SRC"]
@@ -296,7 +404,55 @@ class triggerControlTab(templateTab):
       self.ram_pvList[i].sort(key=lambda pv: natural_key(pv.name))
     self.combo_ramSel.setCurrentIndex(0)
     self.combo_ramSel.currentIndexChanged.connect(self.OnRamChanged)
-    layout.addWidget(self.combo_ramSel, row, col + 2, 1, 2)
+    ram_layout.addWidget(self.combo_ramSel, row, col + 1)
+
+    row = 1
+
+    hline = QFrame()
+    hline.setFrameShape(QFrame.Shape.HLine)
+    # hline.setFrameShadow(QFrame.Shadow.Sunken)
+    ram_layout.addWidget(hline, row, 0, 1, ram_layout.columnCount())
+    row += 1
+
+    ram_layout.addWidget(GLabel("Trig Src. Select", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 1, 1, 1)
+    ramDisplay = ["VETO", "TRIG", "SWEEP"]
+
+    row += 1
+    for i in range(len(not_ram_pv)):
+      ram_layout.addWidget(GLabel(f"{ramDisplay[i]}  "), row, col)
+      ramSrc = RComboBox(self.FindPV(not_ram_pv[i]), parent=self)
+      ram_layout.addWidget(ramSrc, row, col + 1)
+      self.pvWidgetList.append(ramSrc)
+      row += 1
+
+    hline1 = QFrame()
+    hline1.setFrameShape(QFrame.Shape.HLine)
+    # hline.setFrameShadow(QFrame.Shadow.Sunken)
+    ram_layout.addWidget(hline1, row, 0, 1, ram_layout.columnCount())
+    row += 1
+
+    ram_layout.addWidget(GLabel("Sweep Mux"), row, col)
+    sweepMux = RComboBox(self.FindPV("SweepMux"), parent=self)
+    ram_layout.addWidget(sweepMux, row, col + 1)
+    self.pvWidgetList.append(sweepMux)
+
+    row += 1
+    ram_layout.addWidget(GLabel("Sweep Pulse Width"), row, col)
+    sweepWidth = RLineEdit(self.FindPV("Sweep_pw"), parent=self)
+    ram_layout.addWidget(sweepWidth, row, col + 1)
+    self.pvWidgetList.append(sweepWidth)
+
+
+  #&---------------------------------------------------------
+  def onSerialOrParallelChanged(self, state):
+    if state == False:
+      self.ssiInput.setEnabled(True)
+      self.ssiTransLen.setEnabled(True)
+      self.polarity.setEnabled(False)
+    else: 
+      self.ssiInput.setEnabled(False)
+      self.ssiTransLen.setEnabled(False)
+      self.polarity.setEnabled(True)
 
 
   def OnRamChanged(self, index):
@@ -315,6 +471,7 @@ class triggerControlTab(templateTab):
 
     self.ram_window[ramIdx] = RAMWindow(ram_name, self.ram_pvList[ramIdx], self)
     self.ram_window[ramIdx].show()
+
 
 
 #@========================================================================================
@@ -549,6 +706,17 @@ class MTRGWindow(QMainWindow):
     self.pvWidgetList.append(impSync)
     row += 1
 
+    info_layout.addWidget(GLabel("Read Out", alignment=Qt.AlignmentFlag.AlignRight), row, col)
+    readout = RTwoStateButton( self.FindPV("CS_Ena"), parent=self)
+    info_layout.addWidget(readout, row, col + 1)
+    self.pvWidgetList.append(readout)
+    row += 1
+
+    fifoToRead = RComboBox( self.FindPV("FifoNum"), parent=self)
+    info_layout.addWidget(fifoToRead, row, col, 1, 2)
+    self.pvWidgetList.append(fifoToRead)
+    row += 1
+
 
     #------------------------------ Trigger Rate Counters
     rowIdx = 0
@@ -625,17 +793,24 @@ class MTRGWindow(QMainWindow):
 
     # Add three tabs
     self.tab1 = triggerControlTab(self.board, parent=self)
-    self.tab2 = linkControlTab(self.board, parent=self)
-    self.tab3 = otherControlTab(self.board, parent=self)
+    self.tab2 = wheelRAMTab(self.board, parent=self)
+    self.tab3 = linkControlTab(self.board, parent=self)
+    self.tab4 = otherControlTab(self.board, parent=self)
 
     self.tabs.addTab(self.tab1, "Trigger Control")
-    self.tabs.addTab(self.tab2, "Link Control")
-    self.tabs.addTab(self.tab3, "Other Control")
+    self.tabs.addTab(self.tab2, "Wheel RAM")
+    self.tabs.addTab(self.tab3, "LINK Control")
+    self.tabs.addTab(self.tab4, "Other Control")
+
+    self.tabs.setCurrentWidget(self.tab3)
+
 
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
+
 
   #################################################################
   def FindPV(self, pv_name) -> PV:
@@ -659,3 +834,5 @@ class MTRGWindow(QMainWindow):
       self.tab2.UpdatePVs()
     elif current_tab is self.tab3:
       self.tab3.UpdatePVs()
+    elif current_tab is self.tab4:
+      self.tab4.UpdatePVs()

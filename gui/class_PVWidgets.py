@@ -114,7 +114,7 @@ class RComboBox(QComboBox):
     self.pv = pv
 
     if width is not None:
-      self.setFixedWidth(None)
+      self.setFixedWidth(width)
   
     self.setToolTip(pv.name)
 

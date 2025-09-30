@@ -1,9 +1,11 @@
 
 from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox, QComboBox
-from PyQt6.QtCore import Qt
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtCore import Qt, pyqtSignal, QPoint
+from PyQt6.QtGui import QPainter, QPen, QPolygon
 
 from class_PV import PV
+import math
+
 
 #make a new GLabel class that inherits from QLabel, and always has right alignment
 class GLabel(QLabel):
@@ -134,3 +136,68 @@ class GFlagDisplay(QWidget):
       self.button.setStyleSheet("")
       self.button.setToolTip(self.fail_msg)
 
+
+class GArrow(QWidget):
+  def __init__(self, length=50, color=Qt.GlobalColor.black, angle=0, parent=None):
+    super().__init__(parent)
+    self.length = length
+    self.color = color
+    self.angle = angle  # angle in degrees
+    self.setMinimumSize(self.length + 30, 40)
+
+  def setLength(self, length):
+    self.length = length
+    self.setMinimumSize(self.length + 30, 40)
+    self.update()
+
+  def setColor(self, color):
+    self.color = color
+    self.update()
+
+  def setAngle(self, angle):
+    self.angle = angle
+    self.update()
+
+  def paintEvent(self, event):
+    painter = QPainter(self)
+    pen = QPen(self.color, 2)
+    painter.setPen(pen)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    # Center the arrow in the widget
+    center_x = self.width() // 2
+    center_y = self.height() // 2
+
+    # Calculate start and end points based on angle
+    rad = math.radians(self.angle)
+    dx = math.cos(rad) * self.length / 2
+    dy = math.sin(rad) * self.length / 2
+
+    start_x = center_x - dx
+    start_y = center_y - dy
+    end_x = center_x + dx
+    end_y = center_y + dy
+
+    painter.drawLine(int(start_x), int(start_y), int(end_x), int(end_y))
+
+    # Arrow head
+    arrow_size = 10
+    angle_offset = math.radians(30)  # 30 degrees for arrow head
+
+    # Calculate arrow head points
+    arrow_pnt = QPoint(int(end_x), int(end_y))
+    left_angle = rad - angle_offset
+    right_angle = rad + angle_offset
+
+    left_pnt = QPoint(
+      int(end_x - arrow_size * math.cos(left_angle)),
+      int(end_y - arrow_size * math.sin(left_angle))
+    )
+    right_pnt = QPoint(
+      int(end_x - arrow_size * math.cos(right_angle)),
+      int(end_y - arrow_size * math.sin(right_angle))
+    )
+
+    arrow_head = QPolygon([arrow_pnt, left_pnt, right_pnt])
+    painter.setBrush(self.color)
+    painter.drawPolygon(arrow_head)
