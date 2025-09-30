@@ -9,7 +9,7 @@ from class_PV import PV
 class GLabel(QLabel):
   def __init__(self, text, alignment = Qt.AlignmentFlag.AlignRight, parent=None):
     super().__init__(text)
-    self.setAlignment(alignment)
+    self.setAlignment(alignment | Qt.AlignmentFlag.AlignVCenter)
 
 #make a new GLineEdit class that inherits from QLineEdit. when text changed, set text color to be blue, when enter pressed, set text color to be black
 class GLineEdit(QLineEdit):

@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget, QTabWidget, QGroupBox, QPushButton
+from PyQt6.QtWidgets import QMainWindow, QGridLayout, QWidget, QTabWidget, QGroupBox, QPushButton, QFrame, QComboBox
 from PyQt6.QtCore import Qt, QTimer
 
 from class_Board import Board
@@ -7,6 +7,8 @@ from custom_QClasses import GLabel
 from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RLabelLineEdit, RSetButton
 from gui_RAM import RAMWindow
 import re
+
+from aux import make_pattern_list, natural_key
 
 ############################################################################################################
 class templateTab(QWidget):
@@ -29,7 +31,7 @@ class templateTab(QWidget):
     return None
 
 
-#------------------------------------------------------------------------------------------------------------
+#@========================================================================================
 class triggerControlTab(templateTab):
   def __init__(self, board : Board, parent=None):
     super().__init__(board, parent)
@@ -37,11 +39,285 @@ class triggerControlTab(templateTab):
     layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     self.setLayout(layout)
 
-    layout.addWidget(GLabel("Trigger Control Settings will be here"), 0, 0)
+    #--------------------- header
+    row = 0
+    layout.addWidget(GLabel("VETO", alignment=Qt.AlignmentFlag.AlignHCenter), row, 5, 1, 3)
+    layout.addWidget(GLabel("Trigger Prescale", alignment=Qt.AlignmentFlag.AlignHCenter), row, 9, 1, 2)
 
-  
+    row += 1
+    layout.addWidget(GLabel("En.", alignment=Qt.AlignmentFlag.AlignHCenter), row, 3)
+    layout.addWidget(GLabel("NIM", alignment=Qt.AlignmentFlag.AlignHCenter), row, 5)
+    layout.addWidget(GLabel("Thrtl", alignment=Qt.AlignmentFlag.AlignHCenter), row, 6)
+    layout.addWidget(GLabel("RAM", alignment=Qt.AlignmentFlag.AlignHCenter), row, 7)
 
-#------------------------------------------------------------------------------------------------------------
+    layout.addWidget(GLabel("En.", alignment=Qt.AlignmentFlag.AlignHCenter), row, 9)
+    layout.addWidget(GLabel("Factor", alignment=Qt.AlignmentFlag.AlignHCenter), row, 10)
+
+    # Add vertical line after col 3
+    vline = QFrame()
+    vline.setFrameShape(QFrame.Shape.VLine)
+    # vline.setFrameShadow(QFrame.Shadow.Sunken)
+    layout.addWidget(vline, 2, 4, 8, 1)  # span enough rows
+
+    vline2 = QFrame()
+    vline2.setFrameShape(QFrame.Shape.VLine)
+    layout.addWidget(vline2, 2, 8, 11, 1)  # span enough rows
+
+    vline3 = QFrame()
+    vline3.setFrameShape(QFrame.Shape.VLine)
+    layout.addWidget(vline3, 2, 11, 8, 1)  # span enough rows
+
+    row += 1
+    enNIM = RTwoStateButton(self.FindPV("EN_NIM_AUX"), width=80, parent=self)
+    enNIM.SetTexts("NIM Dis.", "NIM En.")
+    self.pvWidgetList.append(enNIM)
+    layout.addWidget(enNIM, row, 0)
+
+    enRAM = RTwoStateButton(self.FindPV("EN_TRIG_RAM_AUX"), width=80, parent=self)
+    enRAM.SetTexts("RAM Dis.", "RAM En.")
+    self.pvWidgetList.append(enRAM)
+    layout.addWidget(enRAM, row, 1)
+
+    row += 1
+    layout.addWidget(GLabel("X-Threshold "), row, 0)
+    xThreshold = RLineEdit(self.FindPV("reg_SUM_OF_X_THRESH"), width=80, parent=self)
+    self.pvWidgetList.append(xThreshold)
+    layout.addWidget(xThreshold, row, 1)
+
+    row += 1
+    layout.addWidget(GLabel("Y-Threshold "), row, 0)
+    yThreshold = RLineEdit(self.FindPV("reg_SUM_OF_Y_THRESH"), width=80, parent=self)
+    self.pvWidgetList.append(yThreshold)
+    layout.addWidget(yThreshold, row, 1)
+
+
+    #*-------------------------- trigger controls
+
+    pvNameList = ["EN_MAN_AUX", "EN_SUM_X", "EN_SUM_Y", "EN_SUM_XY", "EN_ALGO5", "EN_LINK_L", "EN_LINK_R", "EN_MYRIAD_LINK_U"]
+    displayNameList = ["MAX/AUX/NIM", "SUM X", "SUM Y", "SUM XY", "CPLD/Coinc", "LINK L", "LINK R", "MYRIAD/LINK U"]
+
+    nim_veto_pv_list = [ pv for pv in self.board.Board_PV if pv.name.split(":")[-1].startswith("EN_NIM_VETO_")]
+    thrl_veto_pv_list = [ pv for pv in self.board.Board_PV if pv.name.split(":")[-1].startswith("EN_THROTTLE_VETO_")]
+    ram_veto_pv_list = [ pv for pv in self.board.Board_PV if pv.name.split(":")[-1].startswith("EN_RAM_VETO_")]
+
+    prescaleEn_pv_list = [
+      pv for pv in self.board.Board_PV
+      if re.match(r'TRIG_[A-Z]_PRESCALE_ENBL$', pv.name.split(":")[-1])
+    ]
+    prescaleEn_pv_list.sort(key=lambda x: x.name)
+
+    prescaleFactor_pv_list = [
+      pv for pv in self.board.Board_PV
+      if re.match(r'TRIG_[A-Z]_PRESCALE_FACTOR$', pv.name.split(":")[-1])
+    ]
+    prescaleFactor_pv_list.sort(key=lambda x: x.name)
+
+
+    row = 2
+    col = 2
+    for i, (pvName, displayName) in enumerate(zip(pvNameList, displayNameList)):
+      layout.addWidget(GLabel(displayName + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, col)
+      pvWidget = RTwoStateButton(self.FindPV(pvName), width = 30, parent=self)
+      pvWidget.ClearTxt()
+      layout.addWidget(pvWidget, row, col + 1)
+      self.pvWidgetList.append(pvWidget)
+
+      nim_pv_widget = RTwoStateButton(nim_veto_pv_list[i], width = 30, parent=self)
+      nim_pv_widget.ClearTxt()
+      layout.addWidget(nim_pv_widget, row, col + 3)
+      self.pvWidgetList.append(nim_pv_widget)
+
+      thrl_pv_widget = RTwoStateButton(thrl_veto_pv_list[i], width = 30, parent=self)
+      thrl_pv_widget.ClearTxt()
+      layout.addWidget(thrl_pv_widget, row, col + 4)
+      self.pvWidgetList.append(thrl_pv_widget)
+
+      ram_pv_widget = RTwoStateButton(ram_veto_pv_list[i], width = 30, parent=self)
+      ram_pv_widget.ClearTxt()
+      layout.addWidget(ram_pv_widget, row, col + 5)
+      self.pvWidgetList.append(ram_pv_widget)
+
+      prescale_pv_widget = RTwoStateButton(prescaleEn_pv_list[i], width = 30, parent=self)
+      prescale_pv_widget.ClearTxt()
+      layout.addWidget(prescale_pv_widget, row, col + 7)
+      self.pvWidgetList.append(prescale_pv_widget)
+
+      prescaleFactor_widget = RLineEdit(prescaleFactor_pv_list[i], width=80, parent=self)
+      layout.addWidget(prescaleFactor_widget, row, col + 8)
+      self.pvWidgetList.append(prescaleFactor_widget)
+
+
+      row += 1
+
+    #*-------------------------- total veto controls
+    layout.addWidget(GLabel("Veto Ctrl.  "), row, col, 1, 3)
+
+    nim_veto_widget = RTwoStateButton(self.FindPV("ENBL_NIM_VETO"), width=30, parent=self)
+    nim_veto_widget.ClearTxt()
+    layout.addWidget(nim_veto_widget, row, col+3)
+    self.pvWidgetList.append(nim_veto_widget)
+
+    thrl_veto_widget = RTwoStateButton(self.FindPV("ENBL_THROTTLE_VETO"), width=30, parent=self)
+    thrl_veto_widget.ClearTxt()
+    layout.addWidget(thrl_veto_widget, row, col+4)
+    self.pvWidgetList.append(thrl_veto_widget)
+
+    ram_veto_widget = RTwoStateButton(self.FindPV("EN_RAM_VETO"), width=30, parent=self)
+    ram_veto_widget.ClearTxt()
+    layout.addWidget(ram_veto_widget, row, col+5)
+    self.pvWidgetList.append(ram_veto_widget)
+    
+
+    row += 1
+    layout.addWidget(GLabel("Software Veto  "), row, col, 1, 5)
+    swTrig = RTwoStateButton(self.FindPV("SOFTWARE_VETO"), width=30, parent=self)
+    swTrig.ClearTxt()
+    layout.addWidget(swTrig, row, col + 5)
+    self.pvWidgetList.append(swTrig)
+
+    row += 1
+    layout.addWidget(GLabel("Mon 7 Veto  "), row, col, 1, 5)
+    mon7Veto = RTwoStateButton(self.FindPV("ENBL_MON7_VETO"), width=30, parent=self)
+    mon7Veto.ClearTxt()
+    layout.addWidget(mon7Veto, row, col + 5)
+    self.pvWidgetList.append(mon7Veto)
+
+
+    row = 6
+    col = 0
+    aglo5_sele_widget = RTwoStateButton(self.FindPV("ALGO_5_SELECT"), parent=self)
+    layout.addWidget(aglo5_sele_widget, row, col, 1, 2)
+    self.pvWidgetList.append(aglo5_sele_widget)
+
+    row = 9
+    linkU_sele_widget = RTwoStateButton(self.FindPV("LINK_U_IS_TRIGGER_TYPE"), parent=self) 
+    layout.addWidget(linkU_sele_widget, row, col, 1, 2)
+    self.pvWidgetList.append(linkU_sele_widget)
+
+    #*-------------------------- coincidence frame
+    row = 0
+    col = 12
+    layout.addWidget(GLabel("Coinc. Masks"), row, col-1, 1, 3)
+
+    row = 1
+    layout.addWidget(GLabel("A", alignment=Qt.AlignmentFlag.AlignHCenter), row, col)
+    layout.addWidget(GLabel("B", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 1)
+
+
+    coinTrigMaskA_pv_list = [ pv for pv in self.board.Board_PV if pv.name.split(":")[-1].startswith("COINC_TRIG_MASK_A")]
+    coinTrigMaskB_pv_list = [ pv for pv in self.board.Board_PV if pv.name.split(":")[-1].startswith("COINC_TRIG_MASK_B")]
+
+    row = 2
+    for i in range(len(coinTrigMaskA_pv_list)):
+      if i == 4 :
+        row += 1
+
+      coinMaskA_widget = RTwoStateButton(coinTrigMaskA_pv_list[i], width=30, parent=self)
+      coinMaskA_widget.ClearTxt()
+      layout.addWidget(coinMaskA_widget, row, col)
+      self.pvWidgetList.append(coinMaskA_widget)
+
+      coinMaskB_widget = RTwoStateButton(coinTrigMaskB_pv_list[i], width=30, parent=self)
+      coinMaskB_widget.ClearTxt()
+      layout.addWidget(coinMaskB_widget, row, col + 1)
+      self.pvWidgetList.append(coinMaskB_widget)
+
+      row += 1
+
+    row = 10 
+    layout.addWidget(GLabel("Coinc. Overlap * 20 ns"), row, 9, 1, 3)
+    overlapTime_widget = RLineEdit(self.FindPV("COINC_OVERLAP_DELAY"), width = 70, parent=self)
+    layout.addWidget(overlapTime_widget, row, 12, 1, 2)
+    self.pvWidgetList.append(overlapTime_widget)
+
+    #*-------------------------- propagation frame
+    row = 7
+
+    layout.addWidget(GLabel("Propagation Frames", alignment=Qt.AlignmentFlag.AlignHCenter), row - 2, 15, 1, 6)
+
+    frameList = ["F1", "F3", "F4", "F5", "F6", "F7"]
+    # Find all PVs with pattern "LINK_Y_PROPAGATE_XX", where Y in ["L", "R", "U"] and XX in frameList
+    frameL_pv_list = [pv for pv in self.board.Board_PV if re.match(rf'LINK_L_PROPAGATE_({"|".join(frameList)})$', pv.name.split(":")[-1])]
+    frameR_pv_list = [pv for pv in self.board.Board_PV if re.match(rf'LINK_R_PROPAGATE_({"|".join(frameList)})$', pv.name.split(":")[-1])]
+    frameU_pv_list = [pv for pv in self.board.Board_PV if re.match(rf'LINK_U_PROPAGATE_({"|".join(frameList)})$', pv.name.split(":")[-1])]
+
+    vline4 = QFrame()
+    vline4.setFrameShape(QFrame.Shape.VLine)
+    layout.addWidget(vline4, row, 14, 3, 1)  # span enough rows
+
+    for i , pv in enumerate(frameL_pv_list):
+      layout.addWidget(GLabel(frameList[i], alignment=Qt.AlignmentFlag.AlignHCenter), row - 1, 15 + i)
+      frameL_widget = RTwoStateButton(pv, width=30, parent=self)
+      frameL_widget.ClearTxt()
+      layout.addWidget(frameL_widget, row, 15 + i)
+      self.pvWidgetList.append(frameL_widget)
+
+      if i == 0 :
+        continue
+
+      frameR_widget = RTwoStateButton(frameR_pv_list[i], width=30, parent=self)
+      frameR_widget.ClearTxt()
+      layout.addWidget(frameR_widget, row + 1, 15 + i)
+      self.pvWidgetList.append(frameR_widget)
+
+      frameU_widget = RTwoStateButton(frameU_pv_list[i], width=30, parent=self)
+      frameU_widget.ClearTxt()
+      layout.addWidget(frameU_widget, row + 2, 15 + i)
+      self.pvWidgetList.append(frameU_widget)
+      
+    
+    #*-------------------------- Wheel Map
+    row = 0
+    col = 17
+
+    layout.addWidget(GLabel("Wheel Map"), row, col, 1, 2)
+
+    ram_pv = ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"]
+    not_ram_pv = ["VETO_RAM_ADDR_SRC", "TRIG_RAM_ADDR_SRC", "SWEEP_RAM_ADDR_SRC"]
+
+    self.ram_pvList = [[] for _ in ram_pv]
+    self.ram_window = [[] for _ in range(len(ram_pv))]
+
+    for pv in self.board.Board_PV:
+      if not isinstance(pv, PV):
+        continue
+      pvName = pv.name.split(":")[-1]
+
+      if any(pvName.startswith(prefix) for prefix in ram_pv) and pvName not in not_ram_pv:
+        for idx, prefix in enumerate(ram_pv):
+          if pvName.startswith(prefix):
+            self.ram_pvList[idx].append(pv)
+
+
+    self.combo_ramSel = QComboBox()
+    self.combo_ramSel.addItem("Select RAM")
+    for i in range(len(ram_pv)):
+      self.combo_ramSel.addItem(f"{ram_pv[i]}")
+      self.ram_pvList[i].sort(key=lambda pv: natural_key(pv.name))
+    self.combo_ramSel.setCurrentIndex(0)
+    self.combo_ramSel.currentIndexChanged.connect(self.OnRamChanged)
+    layout.addWidget(self.combo_ramSel, row, col + 2, 1, 2)
+
+
+  def OnRamChanged(self, index):
+    if index == 0:
+      return
+    ram_name = f"{self.combo_ramSel.currentText()}"
+    self.combo_ramSel.setCurrentIndex(0)
+
+    ramIdx = index - 1
+    # Show the RAM PVs in a new window
+    if self.ram_window[ramIdx]:
+      self.ram_window[ramIdx].show()
+      self.ram_window[ramIdx].raise_()
+      self.ram_window[ramIdx].activateWindow()
+      return
+
+    self.ram_window[ramIdx] = RAMWindow(ram_name, self.ram_pvList[ramIdx], self)
+    self.ram_window[ramIdx].show()
+
+
+#@========================================================================================
 class linkControlTab(templateTab):
   def __init__(self, board : Board, parent=None):
     super().__init__(board,parent)
@@ -53,7 +329,7 @@ class linkControlTab(templateTab):
 
     layout.addWidget(GLabel("Link Control Settings will be here"), 0, 0)
 
-#------------------------------------------------------------------------------------------------------------
+#@========================================================================================
 class otherControlTab(templateTab):
   def __init__(self, board : Board, parent=None):
     super().__init__(board, parent)
@@ -62,7 +338,7 @@ class otherControlTab(templateTab):
     layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     self.setLayout(layout)
 
-    #================ Create a group box for NIM Output Controls
+    #&================ Create a group box for NIM Output Controls
     groupBox_nimOutput = QGroupBox("NIM Output Controls")
     nim_layout = QGridLayout()
     nim_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -116,7 +392,7 @@ class otherControlTab(templateTab):
     self.pvWidgetList.append(nim2InputDelayEnable)
     self.pvWidgetList.append(nim2InputDelay)
 
-    #================ Create a group box for Trigger Data Readout
+    #&================ Create a group box for Trigger Data Readout
     groupBox_trigData = QGroupBox("Trigger Data Readout")
     trigData_layout = QGridLayout()
     trigData_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -130,10 +406,10 @@ class otherControlTab(templateTab):
     trigData_layout.addWidget(dataSrc, row, 1)    
     self.pvWidgetList.append(dataSrc)
 
-    trigData_layout.addWidget(GLabel("E"), row, 3)
-    trigData_layout.addWidget(GLabel("AE"), row, 4)
-    trigData_layout.addWidget(GLabel("AF"), row, 5)
-    trigData_layout.addWidget(GLabel("F"), row, 6)
+    trigData_layout.addWidget(GLabel("E", alignment=Qt.AlignmentFlag.AlignHCenter), row, 3)
+    trigData_layout.addWidget(GLabel("AE", alignment=Qt.AlignmentFlag.AlignHCenter), row, 4)
+    trigData_layout.addWidget(GLabel("AF", alignment=Qt.AlignmentFlag.AlignHCenter), row, 5)
+    trigData_layout.addWidget(GLabel("F", alignment=Qt.AlignmentFlag.AlignHCenter), row, 6)
 
     row += 1
     trigData_layout.addWidget(GLabel("Skip  "), row, 0)
@@ -168,13 +444,13 @@ class otherControlTab(templateTab):
     self.pvWidgetList.append(stateFull)
 
     row += 1
-    trigData_layout.addWidget(GLabel("En. Fifo Mon  "), row, 0)
+    trigData_layout.addWidget(GLabel("En. FIFO Mon  "), row, 0)
     fifoMonEna = RTwoStateButton(self.FindPV("SYSMON_ENABLE"), parent=self)
     trigData_layout.addWidget(fifoMonEna, row, 1)
     self.pvWidgetList.append(fifoMonEna)
 
     resetFifo = RTwoStateButton(self.FindPV("reg_FIFO_RESETS"), parent=self)
-    resetFifo.SetTexts("Normal", "Reset")
+    resetFifo.SetTexts("Normal", "Reset FFIO")
     resetFifo.SetInvertStateColor(True)
     trigData_layout.addWidget(resetFifo, row, 2)
     self.pvWidgetList.append(resetFifo)
@@ -186,7 +462,7 @@ class otherControlTab(templateTab):
 
 
 
-############################################################################################################
+#^###########################################################################################################
 class MTRGWindow(QMainWindow):
   def __init__(self, board_name, board : Board):
     super().__init__()
@@ -256,7 +532,7 @@ class MTRGWindow(QMainWindow):
       pv = self.FindPV(pvName)
       if pv is not None:
         info_layout.addWidget(GLabel(displayName + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, col)
-        pvWidget = RLineEdit(pv, isHex=True, parent=self)
+        pvWidget = RLineEdit(pv, isHex=True, width= 80, parent=self)
         info_layout.addWidget(pvWidget, row, col + 1)
         self.pvWidgetList.append(pvWidget)
         row += 1
