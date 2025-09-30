@@ -484,7 +484,228 @@ class linkControlTab(templateTab):
     self.setLayout(layout)
 
 
-    layout.addWidget(GLabel("Link Control Settings will be here"), 0, 0)
+    rowIdx = 0
+    colIdx = 0
+
+
+    #&================ Create a group box for Link Controls
+    link_pv = [ "LOCK",  "DEN",  "REN",  "SYNC", "RPwr", "TPwr", "SLiL", "SLoL", "ILM" , "XLM", "YLM"]
+    link_display = ["Locked", "Drv. En.", "Rec. En", "Sync", "Rx Pwr", "Tx Pwr", "Line Loopback", "Local loopback", "Input Link Mask", "X En.", "Y En."]
+    link_pvList = [[] for _ in range(len(link_pv))]
+    link_patterns = make_pattern_list(link_pv)
+
+    for pv in self.board.Board_PV:
+      if not isinstance(pv, PV):
+        continue
+      pvName = pv.name.split(":")[-1]
+
+      if any(re.match(pattern, pvName) for pattern in link_patterns):
+        for idx, pattern in enumerate(link_patterns):
+          if re.match(pattern, pvName):
+            link_pvList[idx].append(pv)  
+
+    groupBox_Link = QGroupBox("Serial/Deserial (SerDes) Links")
+    link_layout = QGridLayout()
+    link_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_Link.setLayout(link_layout)
+    layout.addWidget(groupBox_Link, rowIdx, colIdx, 10, 1 )
+
+    subRowIndex = 0
+    for j , link_pv_item in enumerate(link_pv):
+      if j  > 0 :
+        showColLabel = False
+      else:
+        showColLabel = True
+      
+      if len(link_pvList[j]) == 0:
+        continue
+
+      link = RMapTwoStateButton(pvList = link_pvList[j], customRowLabel= link_display[j], rowLabelLen=140, rows=1, hasColLabel=showColLabel, cols=len(link_pvList[j]), parent=self)
+      if link_pv_item in [ "ILM", "LOCK", "XLM", "YLM"]:
+        link.SetInvertStateColor(True)
+      link_layout.addWidget(link, subRowIndex, 0)
+      self.pvWidgetList.append(link)
+      subRowIndex += 1
+
+
+    #&================ Create LRU
+    colIdx = 1
+    groupBox_LRU = QGroupBox("LRU Controls")
+    lru_layout = QGridLayout()
+    lru_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_LRU.setLayout(lru_layout)
+    layout.addWidget(groupBox_LRU, rowIdx, colIdx, 10, 1 )
+
+    row = 1
+    lru_layout.addWidget(GLabel("Link Init Retry"), row, 0)
+    linkInitRetry = RTwoStateButton(self.FindPV("LOCK_RETRY"), width=30, parent=self)
+    lru_layout.addWidget(linkInitRetry, row, 1)
+    self.pvWidgetList.append(linkInitRetry)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Link Init Ack"), row, 0)
+    linkInitAck = RTwoStateButton(self.FindPV("LOCK_ACK"), width=30 , parent=self)
+    lru_layout.addWidget(linkInitAck, row, 1)
+    self.pvWidgetList.append(linkInitAck)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Reset Link Init"), row, 0)
+    resetLinkInit = RTwoStateButton(self.FindPV("RESET_LINK_INIT"),  width=30, parent=self)
+    lru_layout.addWidget(resetLinkInit, row, 1)
+    self.pvWidgetList.append(resetLinkInit)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Link L Stringent"), row, 0)
+    linkLStringent = RTwoStateButton(self.FindPV("LINK_L_STRINGENT"),  width=30, parent=self)
+    lru_layout.addWidget(linkLStringent, row, 1)
+    self.pvWidgetList.append(linkLStringent)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Link R Stringent"), row, 0)
+    linkRStringent = RTwoStateButton(self.FindPV("LINK_R_STRINGENT"), width=30, parent=self)
+    lru_layout.addWidget(linkRStringent, row, 1)
+    self.pvWidgetList.append(linkRStringent)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Link U Stringent"), row, 0)
+    linkUStringent = RTwoStateButton(self.FindPV("LINK_U_STRINGENT"), width=30, parent=self)
+    lru_layout.addWidget(linkUStringent, row, 1)
+    self.pvWidgetList.append(linkUStringent)  
+                                     
+    vline = QFrame()
+    vline.setFrameShape(QFrame.Shape.VLine)
+    lru_layout.addWidget(vline, 0, 2, layout.rowCount(), 1)
+
+    #------------------ LRU 
+    row = 0
+    col = 3
+    lru_layout.addWidget(GLabel("L", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 1)
+    lru_layout.addWidget(GLabel("U", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 2)
+    lru_layout.addWidget(GLabel("R", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 3)
+
+    row += 1
+    lru_layout.addWidget(GLabel("SM locked"), row, col)
+    lsmLock = RTwoStateButton(self.FindPV("L_SM_LOCKED"), width=30, parent=self)
+    lsmLock.ClearTxt()
+    usmLock = RTwoStateButton(self.FindPV("U_SM_LOCKED"), width=30, parent=self)
+    usmLock.ClearTxt()
+    rsmLock = RTwoStateButton(self.FindPV("R_SM_LOCKED"), width=30, parent=self)
+    rsmLock.ClearTxt()
+
+    lru_layout.addWidget(lsmLock, row, col + 1)
+    lru_layout.addWidget(usmLock, row, col + 2)
+    lru_layout.addWidget(rsmLock, row, col + 3)
+    
+    self.pvWidgetList.append(lsmLock)
+    self.pvWidgetList.append(usmLock)
+    self.pvWidgetList.append(rsmLock)
+
+    row += 1
+    lru_layout.addWidget(GLabel("SM lost lock"), row, col)
+    lsmLostLock = RTwoStateButton(self.FindPV("L_LOST_LOCK"), width=30, parent=self)
+    lsmLostLock.ClearTxt()
+    usmLostLock = RTwoStateButton(self.FindPV("U_LOST_LOCK"), width=30, parent=self)
+    usmLostLock.ClearTxt()
+    rsmLostLock = RTwoStateButton(self.FindPV("R_LOST_LOCK"), width=30, parent=self)
+    rsmLostLock.ClearTxt()
+
+    lru_layout.addWidget(lsmLostLock, row, col + 1)
+    lru_layout.addWidget(usmLostLock, row, col + 2)
+    lru_layout.addWidget(rsmLostLock, row, col + 3)
+
+    self.pvWidgetList.append(lsmLostLock)
+    self.pvWidgetList.append(usmLostLock)
+    self.pvWidgetList.append(rsmLostLock)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Reset Lost Lock"), row, col)
+    lsmResetLostLock = RTwoStateButton(self.FindPV("LostLockRstL"), width=30, parent=self)
+    lsmResetLostLock.ClearTxt()
+    usmResetLostLock = RTwoStateButton(self.FindPV("LostLockRstU"), width=30, parent=self)
+    usmResetLostLock.ClearTxt()
+    rsmResetLostLock = RTwoStateButton(self.FindPV("LostLockRstR"), width=30, parent=self)
+    rsmResetLostLock.ClearTxt()
+
+    lru_layout.addWidget(lsmResetLostLock, row, col + 1)
+    lru_layout.addWidget(usmResetLostLock, row, col + 2)
+    lru_layout.addWidget(rsmResetLostLock, row, col + 3)  
+
+    self.pvWidgetList.append(lsmResetLostLock)
+    self.pvWidgetList.append(usmResetLostLock)
+    self.pvWidgetList.append(rsmResetLostLock)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Drv En."), row, col)
+    lsmDrvEn = RTwoStateButton(self.FindPV("LRUCtl00"), width=30, parent=self)
+    lsmDrvEn.ClearTxt()
+    usmDrvEn = RTwoStateButton(self.FindPV("LRUCtl04"), width=30, parent=self)
+    usmDrvEn.ClearTxt()
+    rsmDrvEn = RTwoStateButton(self.FindPV("LRUCtl08"), width=30, parent=self)
+    rsmDrvEn.ClearTxt()
+
+    lru_layout.addWidget(lsmDrvEn, row, col + 1)
+    lru_layout.addWidget(usmDrvEn, row, col + 2)
+    lru_layout.addWidget(rsmDrvEn, row, col + 3)
+
+    self.pvWidgetList.append(lsmDrvEn)
+    self.pvWidgetList.append(usmDrvEn)
+    self.pvWidgetList.append(rsmDrvEn)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Rec En."), row, col)
+    lsmRecEn = RTwoStateButton(self.FindPV("LRUCtl01"), width=30, parent=self)
+    lsmRecEn.ClearTxt()
+    usmRecEn = RTwoStateButton(self.FindPV("LRUCtl05"), width=30, parent=self)
+    usmRecEn.ClearTxt()
+    rsmRecEn = RTwoStateButton(self.FindPV("LRUCtl09"), width=30, parent=self)
+    rsmRecEn.ClearTxt()
+
+    lru_layout.addWidget(lsmRecEn, row, col + 1)
+    lru_layout.addWidget(usmRecEn, row, col + 2)
+    lru_layout.addWidget(rsmRecEn, row, col + 3)
+
+    self.pvWidgetList.append(lsmRecEn)
+    self.pvWidgetList.append(usmRecEn)
+    self.pvWidgetList.append(rsmRecEn)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Sync"), row, col)
+    lsmSync = RTwoStateButton(self.FindPV("LRUCtl02"), width=30, parent=self)
+    lsmSync.ClearTxt()
+    usmSync = RTwoStateButton(self.FindPV("LRUCtl06"), width=30, parent=self)
+    usmSync.ClearTxt()
+    rsmSync = RTwoStateButton(self.FindPV("LRUCtl10"), width=30, parent=self)
+    rsmSync.ClearTxt()
+
+    lru_layout.addWidget(lsmSync, row, col + 1)
+    lru_layout.addWidget(usmSync, row, col + 2)
+    lru_layout.addWidget(rsmSync, row, col + 3)
+
+    self.pvWidgetList.append(lsmSync)
+    self.pvWidgetList.append(usmSync)
+    self.pvWidgetList.append(rsmSync)
+
+    row += 1
+    lru_layout.addWidget(GLabel("Reset Rcv DCbal"), row, col, 1, 2)
+    rsmRcvDCbal = RTwoStateButton(self.FindPV("RST_LINKR_DCBAL"), width=30, parent=self)
+    rsmRcvDCbal.ClearTxt()
+    usmRcvDCbal = RTwoStateButton(self.FindPV("RST_LINKU_DCBAL"), width=30, parent=self)
+    usmRcvDCbal.ClearTxt()
+
+    lru_layout.addWidget(usmRcvDCbal, row, col + 2)
+    lru_layout.addWidget(rsmRcvDCbal, row, col + 3)
+
+    self.pvWidgetList.append(usmRcvDCbal)
+    self.pvWidgetList.append(rsmRcvDCbal)
+
+#@========================================================================================
+class CPLDControlTab(templateTab):
+  def __init__(self, board : Board, parent=None):
+    super().__init__(board,parent)
+
+    layout = QGridLayout()
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    self.setLayout(layout)
 
 #@========================================================================================
 class otherControlTab(templateTab):
@@ -678,7 +899,7 @@ class MTRGWindow(QMainWindow):
     layout.addWidget(groupBox_info, rowIdx, colIdx, 1, 1)
 
     row = 0
-    self.miscState = RRegisterDisplay(self.FindPV("reg_MISC_STAT"), True, parent=self)
+    self.miscState = RRegisterDisplay(self.FindPV("reg_MISC_STAT"), False, parent=self)
     info_layout.addWidget(self.miscState, row, 0, 12, 1)
 
     
@@ -795,12 +1016,14 @@ class MTRGWindow(QMainWindow):
     self.tab1 = triggerControlTab(self.board, parent=self)
     self.tab2 = wheelRAMTab(self.board, parent=self)
     self.tab3 = linkControlTab(self.board, parent=self)
-    self.tab4 = otherControlTab(self.board, parent=self)
+    self.tab4 = CPLDControlTab(self.board, parent=self)
+    self.tab5 = otherControlTab(self.board, parent=self)
 
-    self.tabs.addTab(self.tab1, "Trigger Control")
+    self.tabs.addTab(self.tab1, "Trigger/Veto Control")
     self.tabs.addTab(self.tab2, "Wheel RAM")
     self.tabs.addTab(self.tab3, "LINK Control")
-    self.tabs.addTab(self.tab4, "Other Control")
+    self.tabs.addTab(self.tab4, "Trigger/CPLD map")
+    self.tabs.addTab(self.tab5, "Other Control")
 
     self.tabs.setCurrentWidget(self.tab3)
 
@@ -836,3 +1059,5 @@ class MTRGWindow(QMainWindow):
       self.tab3.UpdatePVs()
     elif current_tab is self.tab4:
       self.tab4.UpdatePVs()
+    elif current_tab is self.tab5:
+      self.tab5.UpdatePVs()

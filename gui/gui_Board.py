@@ -365,28 +365,28 @@ class BoardPVWindow(QMainWindow):
         widget.UpdatePV()
 
     if self.hasMap:
-      self.xMap.UpdatePVs()
-      self.yMap.UpdatePVs()
-      self.ddMap.UpdatePVs()
+      self.xMap.UpdatePV()
+      self.yMap.UpdatePV()
+      self.ddMap.UpdatePV()
   
     if self.hasLink:
       for link in self.linkWidgetList:
-        link.UpdatePVs()
+        link.UpdatePV()
 
     if self.hasDiag:
       for diag in self.diagWidgetList:
-        diag.UpdatePVs()
+        diag.UpdatePV()
 
     if self.hasFifoReset:
-      self.fifoReset.UpdatePVs()
+      self.fifoReset.UpdatePV()
 
     if self.hasMTRGLink:
       for link in self.mtrglinkWidgetList:
-        link.UpdatePVs()
+        link.UpdatePV()
 
     if self.hasVeto:
       for veto in self.vetoWidgetList:
-        veto.UpdatePVs()
+        veto.UpdatePV()
 
     if self.isRTR:
       self.rtrReg.UpdatePV()

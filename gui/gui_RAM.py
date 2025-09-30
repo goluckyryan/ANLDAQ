@@ -28,4 +28,4 @@ class RAMWindow(QMainWindow):
     self.timer.start(500)  # Update every second
 
   def OnTimer(self):
-    self.mapTable.UpdatePVs()
+    self.mapTable.UpdatePV()

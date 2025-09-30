@@ -165,7 +165,7 @@ class RMapTwoStateButton(QWidget):
     if hasColLabel :
       rowIdx = 0
       for j in range(cols):
-        if cols < len(labName):
+        if cols <= len(labName):
           lbl = GLabel(labName[j])
         else:
           # lbl = GLabel(chr(ord('A') + j)) 
@@ -217,7 +217,7 @@ class RMapTwoStateButton(QWidget):
         row_buttons.append(btn)
       self.buttons.append(row_buttons)
 
-  def UpdatePVs(self):
+  def UpdatePV(self): # i know it is PVsssssss, but for consistency, drop the s
     for i in range(self.rows):
       for j in range(self.cols):
         self.buttons[i][j].UpdatePV()
@@ -282,7 +282,7 @@ class RMapLineEdit(QWidget):
         row_lineedits.append(le)
       self.lineedits.append(row_lineedits)
 
-  def UpdatePVs(self):
+  def UpdatePV(self):
     for i in range(self.rows):
       for j in range(self.cols):
         self.lineedits[i][j].UpdatePV()
