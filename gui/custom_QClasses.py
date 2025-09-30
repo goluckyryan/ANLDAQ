@@ -1,14 +1,15 @@
 
 from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox, QComboBox
 from PyQt6.QtCore import Qt
+from PyQt6.QtCore import pyqtSignal
 
 from class_PV import PV
 
 #make a new GLabel class that inherits from QLabel, and always has right alignment
 class GLabel(QLabel):
-  def __init__(self, text, vAlign = Qt.AlignmentFlag.AlignVCenter, parent=None):
+  def __init__(self, text, alignment = Qt.AlignmentFlag.AlignRight, parent=None):
     super().__init__(text)
-    self.setAlignment(Qt.AlignmentFlag.AlignRight | vAlign)
+    self.setAlignment(alignment)
 
 #make a new GLineEdit class that inherits from QLineEdit. when text changed, set text color to be blue, when enter pressed, set text color to be black
 class GLineEdit(QLineEdit):
@@ -34,6 +35,19 @@ class GTwoStateButton(QPushButton):
     self.isInvertStateColor = isInvert
     self.color = color
     self.disable_font_color = "brown"
+    self.updateAppearance()
+
+  def SetText1(self, text):
+    self.text1 = text
+    self.updateAppearance()
+
+  def SetText2(self, text):
+    self.text2 = text
+    self.updateAppearance()
+
+  def SetTexts(self, text1, text2):
+    self.text1 = text1
+    self.text2 = text2
     self.updateAppearance()
 
   def toggleState(self):
@@ -74,8 +88,11 @@ class GTwoStateButton(QPushButton):
         else:
           self.setStyleSheet(f"color: {self.disable_font_color};")
 
+  stateChanged = pyqtSignal(bool)
+
   def setState(self, state: bool):
     self.state = state
+    self.stateChanged.emit(self.state)
     self.updateAppearance()
 
 

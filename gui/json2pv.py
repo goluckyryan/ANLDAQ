@@ -145,9 +145,13 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
 #========================== check the pv[1] and reformate if needed
 from class_PV import PV
+import epics
 
 
 def FormatPVList(temp_PV_list):
+
+  epics.ca.clear_cache()
+
   PV_list = []
   Board_list = []
 
@@ -160,12 +164,20 @@ def FormatPVList(temp_PV_list):
     if bdName not in Board_list:
       Board_list.append(bdName)
 
-    if pvName != "reg_MISC_STAT"  and pvName != "reg_MISC_STAT_REG":
-      if pvName.startswith("reg_") or pvName.startswith("regin_"):
-        continue
+    # if pvName != "reg_MISC_STAT"  and pvName != "reg_MISC_STAT_REG":
+    #   if pvName.startswith("reg_") or pvName.startswith("regin_"):
+    #     continue
+
+    mtrg_skip_pv = ["reg_TRIG_RAM_", "reg_VETO_RAM_", "reg_SWEEP_RAM_"]
+    if any(pvName.startswith(prefix) for prefix in mtrg_skip_pv):
+      continue
 
     PV_obj = PV()
     PV_obj.SetName(pvName)
+
+    if pvName == "reg_FIFO_RESETS" :
+      PV_obj.AddState("0")
+      PV_obj.AddState("1")
 
     field_names = [x for x in pv[1]]
     field_value = [pv[1][x] for x in pv[1]]

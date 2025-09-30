@@ -1,46 +1,83 @@
-from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QLabel, QLineEdit, QGridLayout, QPushButton, QWidget, QSpinBox, QComboBox
+from PyQt6.QtCore import pyqtSignal
 
 from class_PV import PV  # Make sure to import PV if not already
+from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 
 ############################### 
 class RLineEdit(GLineEdit):
-  def __init__(self, pv: PV, parent=None):
+  def __init__(self, pv: PV, isHex = False, width=None, parent=None):
     super().__init__("",  parent)
     self.pv = pv
+    self.isHex = isHex
     self.setToolTip(pv.name)
 
+    if width is not None:
+      self.setFixedWidth(width)
+  
+
     self.returnPressed.connect(self.SetPV)
-    if  pv.ReadONLY:
+    if  pv.ReadONLY and isinstance(pv, PV)  :
       self.setReadOnly(True)
       self.setStyleSheet("color: darkgray;")
 
+  def UnsetfixedWidth(self):
+    self.setMinimumWidth(0)
+    self.setMaximumWidth(1000)
 
   def SetPV(self):
     if isinstance(self.pv, PV):
       self.pv.SetValue(float(self.text()))
 
   def UpdatePV(self):
+    if not isinstance(self.pv, PV):
+      return
     if self.pv.isUpdated:
-      self.setText(str(self.pv.value))
+      if self.isHex:
+        self.setText(hex(int(self.pv.value)))
+      else:
+        self.setText(str(self.pv.value))
       if self.pv.ReadONLY:
         self.setStyleSheet("background-color: darkgray;")
       else:
         self.setStyleSheet("")
 
+class RLabelLineEdit(QWidget):
+  def __init__(self, label: str, pv: PV, isHex = False, parent=None):
+    super().__init__(parent)
+    layout = QGridLayout(self)
+    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
+    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
+    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
+    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+
+    self.label = GLabel(label + "  ")
+    self.lineedit = RLineEdit(pv, isHex, self)
+
+    layout.addWidget(self.label, 0, 0)
+    layout.addWidget(self.lineedit, 0, 1)
+
+  def UpdatePV(self):
+    self.lineedit.UpdatePV()
 
 class RTwoStateButton(GTwoStateButton):
-  def __init__(self, pv: PV, parent=None, color="green"):
+  def __init__(self, pv: PV, width=None, parent=None, color="green"):
     super().__init__(pv.States[0], pv.States[1], False, parent, color)
     self.pv = pv
     self.setToolTip(pv.name)
+    if width is not None:
+      self.setFixedWidth(width)
 
     self.clicked.connect(self.SetPV)
     if pv.ReadONLY:
       self.setEnabled(False)
       self.color = "darkgreen"
       self.updateAppearance()
+
+  def UnsetFixedWidth(self):
+    self.setMinimumWidth(0)
+    self.setMaximumWidth(1000)
 
   def ClearTxt(self):
     self.text1 = ""
@@ -55,31 +92,56 @@ class RTwoStateButton(GTwoStateButton):
     if self.pv.isUpdated:
       self.setState(bool(self.pv.value))
 
+class RSetButton(RTwoStateButton):
+  def __init__(self, pv: PV, text,  parent=None, color="lightgreen"):
+    super().__init__(pv, None, parent, color)
+    self.text1 = text
+    self.setState(False)
+  
+  def SetPV(self):
+    self.pv.SetValue(1)
+    self.pv.SetValue(0)
+    self.setState(False)
+
+  def resetButton(self):
+    self.setStyleSheet("")
+
 
 class RComboBox(QComboBox):
-  def __init__(self, pv:PV = None, parent=None):
+  def __init__(self, pv:PV = None, width=None, parent=None):
     super().__init__(parent)
     self.addItems(pv.States)
     self.pv = pv
 
+    if width is not None:
+      self.setFixedWidth(None)
+  
     self.setToolTip(pv.name)
-    self.enableSignal = False
-    self.on_index_changed(self.currentIndex())
+
+    self.currentIndexChanged.connect(self.on_index_changed)
 
     if pv.ReadONLY:
       self.setEnabled(False)
 
+  def UnsetFixedWidth(self):
+    self.setMinimumWidth(0)
+    self.setMaximumWidth(1000)
+
   def on_index_changed(self, index):
-    if not self.enableSignal:
-      return
     self.pv.SetValue(index)
 
+  whenIndexZero = pyqtSignal(bool)
   def UpdatePV(self):
     if self.pv.isUpdated:
-      self.enableSignal = False
+      self.blockSignals(True)
       self.setCurrentIndex(int(self.pv.value))
+      self.blockSignals(False)
+
+      if int(self.pv.value) == 0:
+        self.whenIndexZero.emit(True) 
+      else:
+        self.whenIndexZero.emit(False)
       self.setStyleSheet("")
-      self.enableSignal = True
 
 
 class RMapTwoStateButton(QWidget):
@@ -141,7 +203,7 @@ class RMapTwoStateButton(QWidget):
           layout.addWidget(lbl, rowIdx, 0)
 
       for j in range(cols):
-        btn = RTwoStateButton(pvList[j * rows + i], self, color="green")
+        btn = RTwoStateButton(pvList[j * rows + i], None, self, color="green")
         if clearText:
           btn.ClearTxt()
           btn.setFixedWidth(20)
@@ -210,7 +272,7 @@ class RMapLineEdit(QWidget):
           layout.addWidget(lbl, rowIdx, 0)
 
       for j in range(cols):
-        le = RLineEdit(pvList[j * rows + i], self)
+        le = RLineEdit(pvList[j * rows + i], width=None, parent=self)
         le.setFixedWidth(40)
         le.setFixedHeight(20)
         if hasRowLabel:
@@ -246,7 +308,7 @@ class RRegisterDisplay(QWidget):
 
     row = 0
     for i, name in enumerate(items):
-      layout.addWidget(GLabel(name + ":"), row, 0)
+      layout.addWidget(GLabel(name + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, 0)
 
       btn = GTwoStateButton("", "")
       btn.setFixedWidth(20)

@@ -27,7 +27,7 @@ class BoardPVWindow(QMainWindow):
     self.channelNo = channelNo
     self.Board = board
 
-    self.setWindowTitle(f"{board_name}")
+    self.setWindowTitle(f"Generic | {board_name}")
     self.setGeometry(150, 150, 300, 400)
 
     central_widget = QWidget()
@@ -179,7 +179,7 @@ class BoardPVWindow(QMainWindow):
         layout.addWidget(combo, rowIndex, colIndex + 1)
 
       else:
-        le = RLineEdit(pv)
+        le = RLineEdit(pv, None, 100, parent=self)
         le.setProperty("idx", i)
         layout.addWidget(le, rowIndex, colIndex + 1)
 
