@@ -48,7 +48,7 @@ class RLineEdit(GLineEdit):
       return
     if self.pv.isUpdated:
       if self.hexBinDec == "hex":
-        self.setText(hex(int(self.pv.value)))
+        self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '012X'))
       elif self.hexBinDec == "bin":
         self.setText(format(int(self.pv.value), '07b'))
       else:
