@@ -7,10 +7,10 @@ from custom_QClasses import GLineEdit, GTwoStateButton, GLabel
 
 ############################### 
 class RLineEdit(GLineEdit):
-  def __init__(self, pv: PV, isHex = False, width=None, parent=None):
+  def __init__(self, pv: PV, hexBinDec = "dec", width=None, parent=None):
     super().__init__("",  parent)
     self.pv = pv
-    self.isHex = isHex
+    self.hexBinDec = hexBinDec.lower()
     self.setToolTip(pv.name)
 
     if width is not None:
@@ -28,20 +28,37 @@ class RLineEdit(GLineEdit):
 
   def SetPV(self):
     if isinstance(self.pv, PV):
-      self.pv.SetValue(float(self.text()))
+      if self.hexBinDec == "hex":
+        try:
+          val = int(self.text(), 16)
+        except ValueError:
+          val = 0
+        self.pv.SetValue(val)
+      elif self.hexBinDec == "bin":
+        try:
+          val = int(self.text(), 2)
+        except ValueError:
+          val = 0
+        self.pv.SetValue(val)
+      else:
+        self.pv.SetValue(float(self.text()))
 
   def UpdatePV(self):
     if not isinstance(self.pv, PV):
       return
     if self.pv.isUpdated:
-      if self.isHex:
+      if self.hexBinDec == "hex":
         self.setText(hex(int(self.pv.value)))
+      elif self.hexBinDec == "bin":
+        self.setText(format(int(self.pv.value), '07b'))
       else:
         self.setText(str(self.pv.value))
+        
       if self.pv.ReadONLY:
         self.setStyleSheet("background-color: darkgray;")
       else:
         self.setStyleSheet("")
+      self.pv.isUpdated = False
 
 class RLabelLineEdit(QWidget):
   def __init__(self, label: str, pv: PV, isHex = False, parent=None):

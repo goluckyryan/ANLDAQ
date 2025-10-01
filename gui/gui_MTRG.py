@@ -186,12 +186,12 @@ class triggerControlTab(templateTab):
 
     row = 6
     col = 0
-    aglo5_sele_widget = RTwoStateButton(self.FindPV("ALGO_5_SELECT"), parent=self)
+    aglo5_sele_widget = RTwoStateButton(self.FindPV("ALGO_5_SELECT"), parent=self, color="")
     layout.addWidget(aglo5_sele_widget, row, col, 1, 2)
     self.pvWidgetList.append(aglo5_sele_widget)
 
     row = 9
-    linkU_sele_widget = RTwoStateButton(self.FindPV("LINK_U_IS_TRIGGER_TYPE"), parent=self) 
+    linkU_sele_widget = RTwoStateButton(self.FindPV("LINK_U_IS_TRIGGER_TYPE"), parent=self, color="") 
     layout.addWidget(linkU_sele_widget, row, col, 1, 2)
     self.pvWidgetList.append(linkU_sele_widget)
 
@@ -707,6 +707,215 @@ class CPLDControlTab(templateTab):
     layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     self.setLayout(layout)
 
+    #&================ Create a group box for Remote Master Logic L
+    groupBox_remoteMaster = QGroupBox("Remote Master Logic")
+    remoteMaster_layout = QGridLayout()
+    remoteMaster_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_remoteMaster.setLayout(remoteMaster_layout)
+    layout.addWidget(groupBox_remoteMaster, 0, 0, 1, 1)
+
+    row = 0
+    remoteMaster_layout.addWidget(GLabel("L", alignment=Qt.AlignmentFlag.AlignHCenter), row, 1)
+    remoteMaster_layout.addWidget(GLabel("R", alignment=Qt.AlignmentFlag.AlignHCenter), row, 2)
+    remoteMaster_layout.addWidget(GLabel("U", alignment=Qt.AlignmentFlag.AlignHCenter), row, 3)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Remote TS offset"), row, 0)
+
+    self.remoteTSoffsetL = RLineEdit(self.FindPV("reg_REMOTE_TRIGGER_TS_OFFSET_L"), parent=self)
+    self.remoteTSoffsetR = RLineEdit(self.FindPV("reg_REMOTE_TRIGGER_TS_OFFSET_R"), parent=self)
+    self.remoteTSoffsetU = RLineEdit(self.FindPV("reg_REMOTE_TRIGGER_TS_OFFSET_U"), parent=self)
+    remoteMaster_layout.addWidget(self.remoteTSoffsetL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteTSoffsetR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteTSoffsetU, row, 3)
+    self.pvWidgetList.append(self.remoteTSoffsetL)
+    self.pvWidgetList.append(self.remoteTSoffsetR)
+    self.pvWidgetList.append(self.remoteTSoffsetU)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Remote Dig offset"), row, 0)
+    self.remoteDigTSoffsetL = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DIG_OFFSET_L"), parent=self)
+    self.remoteDigTSoffsetR = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DIG_OFFSET_R"), parent=self)
+    self.remoteDigTSoffsetU = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DIG_OFFSET_U"), parent=self)
+    remoteMaster_layout.addWidget(self.remoteDigTSoffsetL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteDigTSoffsetR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteDigTSoffsetU, row, 3)
+    self.pvWidgetList.append(self.remoteDigTSoffsetL)
+    self.pvWidgetList.append(self.remoteDigTSoffsetR)
+    self.pvWidgetList.append(self.remoteDigTSoffsetU)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Local Coinc. Mask"), row, 0)
+    self.remoteCoincMaskL = RLineEdit(self.FindPV("L_COINC_MASK"), hexBinDec="bin", parent=self)
+    self.remoteCoincMaskR = RLineEdit(self.FindPV("R_COINC_MASK"), hexBinDec="bin", parent=self)
+    self.remoteCoincMaskU = RLineEdit(self.FindPV("U_COINC_MASK"), hexBinDec="bin", parent=self)
+    remoteMaster_layout.addWidget(self.remoteCoincMaskL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteCoincMaskR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteCoincMaskU, row, 3)
+    self.pvWidgetList.append(self.remoteCoincMaskL)
+    self.pvWidgetList.append(self.remoteCoincMaskR)
+    self.pvWidgetList.append(self.remoteCoincMaskU)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Local Trig Delay"), row, 0)
+    self.localTrigDelayL = RLineEdit(self.FindPV("reg_LOCAL_TRIG_DELAY_L"), parent=self)
+    self.localTrigDelayR = RLineEdit(self.FindPV("reg_LOCAL_TRIG_DELAY_R"), parent=self)
+    self.localTrigDelayU = RLineEdit(self.FindPV("reg_LOCAL_TRIG_DELAY_U"), parent=self)
+    remoteMaster_layout.addWidget(self.localTrigDelayL, row, 1)
+    remoteMaster_layout.addWidget(self.localTrigDelayR, row, 2)
+    remoteMaster_layout.addWidget(self.localTrigDelayU, row, 3)
+    self.pvWidgetList.append(self.localTrigDelayL)
+    self.pvWidgetList.append(self.localTrigDelayR)
+    self.pvWidgetList.append(self.localTrigDelayU)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Overlap Time"), row, 0)
+    self.remoteOverlapTimeL = RLineEdit(self.FindPV("L_OVERLAP_DELAY"), parent=self)
+    self.remoteOverlapTimeR = RLineEdit(self.FindPV("R_OVERLAP_DELAY"), parent=self)
+    self.remoteOverlapTimeU = RLineEdit(self.FindPV("U_OVERLAP_DELAY"), parent=self)
+    remoteMaster_layout.addWidget(self.remoteOverlapTimeL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteOverlapTimeR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteOverlapTimeU, row, 3)
+    self.pvWidgetList.append(self.remoteOverlapTimeL)
+    self.pvWidgetList.append(self.remoteOverlapTimeR)
+    self.pvWidgetList.append(self.remoteOverlapTimeU)
+
+    row += 1
+    remoteMaster_layout.addWidget(GLabel("Remote Trig Delay"), row, 0)
+    self.remoteTrigDelayL = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DELAY_L"), parent=self)
+    self.remoteTrigDelayR = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DELAY_R"), parent=self)
+    self.remoteTrigDelayU = RLineEdit(self.FindPV("reg_REMOTE_TRIG_DELAY_U"), parent=self)
+    remoteMaster_layout.addWidget(self.remoteTrigDelayL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteTrigDelayR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteTrigDelayU, row, 3)
+    self.pvWidgetList.append(self.remoteTrigDelayL)
+    self.pvWidgetList.append(self.remoteTrigDelayR)
+    self.pvWidgetList.append(self.remoteTrigDelayU)
+
+    row += 1
+    self.remoteModeL = RTwoStateButton(self.FindPV("L_RT_TS_MODE"), parent=self)
+    self.remoteModeR = RTwoStateButton(self.FindPV("R_RT_TS_MODE"), parent=self)
+    self.remoteModeU = RTwoStateButton(self.FindPV("U_RT_TS_MODE"), parent=self)
+
+    self.remoteModeL.SetTexts("Message\nTS Mode", "Delay\nLine Mode")
+    self.remoteModeR.SetTexts("Message\nTS Mode", "Delay\nLine Mode")
+    self.remoteModeU.SetTexts("Message\nTS Mode", "Delay\nLine Mode")
+
+    self.remoteModeL.stateChanged.connect(lambda state, LRU="L": self.WhenRMLModeChanged(state, LRU))
+    self.remoteModeR.stateChanged.connect(lambda state, LRU="R": self.WhenRMLModeChanged(state, LRU))
+    self.remoteModeU.stateChanged.connect(lambda state, LRU="U": self.WhenRMLModeChanged(state, LRU))
+
+    remoteMaster_layout.addWidget(self.remoteModeL, row, 1)
+    remoteMaster_layout.addWidget(self.remoteModeR, row, 2)
+    remoteMaster_layout.addWidget(self.remoteModeU, row, 3)
+    self.pvWidgetList.append(self.remoteModeL)
+    self.pvWidgetList.append(self.remoteModeR)
+    self.pvWidgetList.append(self.remoteModeU)
+
+    row += 1
+    txt = "Explanation for the Message TS Mode:\nThe Remote TS/Dig offset is coincident with Local Coinc. Mask (that can be delayed)\nThe coincdient is controlled by the Overlap Time."
+
+    remoteMaster_layout.addWidget(GLabel(txt, alignment=Qt.AlignmentFlag.AlignLeft), row, 0, 1, 4)
+
+
+    
+    #&================ Create a group box for CPLD control
+    groupBox_CPLD = QGroupBox("CPLD Control")
+    cpld_layout = QGridLayout()
+    cpld_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_CPLD.setLayout(cpld_layout)
+    layout.addWidget(groupBox_CPLD, 0, 1, 1, 1)
+
+    row = 0
+    cpld_layout.addWidget(GLabel("bit"), row, 1)
+    cpld_layout.addWidget(GLabel("Sum"), row, 2)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("A"), row, 0)
+    cpldBitA = RLineEdit(self.FindPV("masked_bit_a"), parent=self)
+    cpldSumA = RLineEdit(self.FindPV("masked_sum_a"), parent=self)
+    cpld_layout.addWidget(cpldBitA, row, 1)
+    cpld_layout.addWidget(cpldSumA, row, 2)
+    self.pvWidgetList.append(cpldBitA)
+    self.pvWidgetList.append(cpldSumA)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("B"), row, 0)
+    cpldBitB = RLineEdit(self.FindPV("masked_bit_b"), parent=self)
+    cpldSumB = RLineEdit(self.FindPV("masked_sum_b"), parent=self)
+    cpld_layout.addWidget(cpldBitB, row, 1)
+    cpld_layout.addWidget(cpldSumB, row, 2) 
+    self.pvWidgetList.append(cpldBitB)
+    self.pvWidgetList.append(cpldSumB)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("C"), row, 0)
+    cpldBitC = RLineEdit(self.FindPV("masked_bit_c"), parent=self)
+    cpldSumC = RLineEdit(self.FindPV("masked_sum_c"), parent=self)
+    cpld_layout.addWidget(cpldBitC, row, 1)
+    cpld_layout.addWidget(cpldSumC, row, 2)
+    self.pvWidgetList.append(cpldBitC)
+    self.pvWidgetList.append(cpldSumC)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("D"), row, 0)
+    cpldBitD = RLineEdit(self.FindPV("masked_bit_d"), parent=self)
+    cpldSumD = RLineEdit(self.FindPV("masked_sum_d"), parent=self)
+    cpld_layout.addWidget(cpldBitD, row, 1)
+    cpld_layout.addWidget(cpldSumD, row, 2)
+    self.pvWidgetList.append(cpldBitD)
+    self.pvWidgetList.append(cpldSumD)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("Mask reg"), row, 0, 1, 2)
+    cpldMaskReg = RLineEdit(self.FindPV("reg_CPLD_MASK"), parent=self)
+    cpld_layout.addWidget(cpldMaskReg, row, 2)
+    self.pvWidgetList.append(cpldMaskReg)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("Threshold (Hex)"), row, 0, 1, 2)
+    cpldThreshold = RLineEdit(self.FindPV("reg_FS_MULT_THRESH"), hexBinDec="hex", parent=self)
+    cpld_layout.addWidget(cpldThreshold, row, 2)
+    self.pvWidgetList.append(cpldThreshold)
+
+    row += 1
+    cpld_layout.addWidget(GLabel("Multiplicity"), row, 0, 1, 2)
+    cpldMultiplicity = RLineEdit(self.FindPV("reg_CPLD_MULT"), parent=self)
+    cpld_layout.addWidget(cpldMultiplicity, row, 2)
+    self.pvWidgetList.append(cpldMultiplicity)
+
+    row += 1
+    cpldMode = RComboBox(self.FindPV("FS_SEL"), parent=self)
+    cpld_layout.addWidget(cpldMode, row, 1, 1, 2)
+    self.pvWidgetList.append(cpldMode)
+
+
+  def WhenRMLModeChanged(self, state, LRU):
+    if LRU == "L" :
+      self.remoteTSoffsetL.setEnabled(not state)
+      self.remoteDigTSoffsetL.setEnabled(not state)
+      self.remoteOverlapTimeL.setEnabled(not state)
+      self.remoteCoincMaskL.setEnabled(not state)
+      self.localTrigDelayL.setEnabled(not state)
+      self.remoteTrigDelayL.setEnabled(state)
+
+    elif LRU == "R" :
+      self.remoteTSoffsetR.setEnabled(not state)
+      self.remoteDigTSoffsetR.setEnabled(not state)
+      self.remoteOverlapTimeR.setEnabled(not state)
+      self.remoteCoincMaskR.setEnabled(not state)
+      self.localTrigDelayR.setEnabled(not state)
+      self.remoteTrigDelayR.setEnabled(state)
+
+    elif LRU == "U" :
+      self.remoteTSoffsetU.setEnabled(not state)
+      self.remoteDigTSoffsetU.setEnabled(not state)
+      self.remoteOverlapTimeU.setEnabled(not state)
+      self.remoteCoincMaskU.setEnabled(not state)
+      self.localTrigDelayU.setEnabled(not state)
+      self.remoteTrigDelayU.setEnabled(state)
+
+    
 #@========================================================================================
 class otherControlTab(templateTab):
   def __init__(self, board : Board, parent=None):
@@ -910,7 +1119,7 @@ class MTRGWindow(QMainWindow):
       pv = self.FindPV(pvName)
       if pv is not None:
         info_layout.addWidget(GLabel(displayName + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, col)
-        pvWidget = RLineEdit(pv, isHex=True, width= 80, parent=self)
+        pvWidget = RLineEdit(pv, hexBinDec="hex", width= 80, parent=self)
         info_layout.addWidget(pvWidget, row, col + 1)
         self.pvWidgetList.append(pvWidget)
         row += 1
@@ -958,8 +1167,8 @@ class MTRGWindow(QMainWindow):
 
     for idx, (highPV, lowPV) in enumerate(zip(trigRateHighPVList, trigRateLowPVList), start=1):
       trigRate_layout.addWidget(GLabel(str(idx)), row, col)
-      highWidget = RLineEdit(highPV, width=60, parent=self)
-      lowWidget = RLineEdit(lowPV, width=60, parent=self)
+      highWidget = RLineEdit(highPV, width=80, parent=self)
+      lowWidget = RLineEdit(lowPV, width=80, parent=self)
       trigRate_layout.addWidget(highWidget, row, col + 1)
       trigRate_layout.addWidget(lowWidget, row, col + 2)
       self.pvWidgetList.append(highWidget)
@@ -978,8 +1187,8 @@ class MTRGWindow(QMainWindow):
     row += 1 
     for idx, (highPV, lowPV) in enumerate(zip(accptTrigHighPVList, accptTrigLowPVList), start=1):
       trigRate_layout.addWidget(GLabel(str(idx)), row, col)
-      highWidget = RLineEdit(highPV,width=60, parent=self)
-      lowWidget = RLineEdit(lowPV, width=60, parent=self)
+      highWidget = RLineEdit(highPV,width=80, parent=self)
+      lowWidget = RLineEdit(lowPV, width=80, parent=self)
       trigRate_layout.addWidget(highWidget, row, col + 1)
       trigRate_layout.addWidget(lowWidget, row, col + 2)
       self.pvWidgetList.append(highWidget)
@@ -997,7 +1206,7 @@ class MTRGWindow(QMainWindow):
 
     for pv, displayName in zip(diagPVList, diagPVDisplayName):
       trigRate_layout.addWidget(GLabel(displayName, alignment=Qt.AlignmentFlag.AlignRight), row, col)
-      pvWidget = RLineEdit(pv, width = 60, parent=self)
+      pvWidget = RLineEdit(pv, width = 80, parent=self)
       trigRate_layout.addWidget(pvWidget, row, col+1)
       self.pvWidgetList.append(pvWidget)
       row += 1
@@ -1025,7 +1234,7 @@ class MTRGWindow(QMainWindow):
     self.tabs.addTab(self.tab4, "Trigger/CPLD map")
     self.tabs.addTab(self.tab5, "Other Control")
 
-    self.tabs.setCurrentWidget(self.tab3)
+    self.tabs.setCurrentWidget(self.tab5)
 
 
     #------------------------------ QTimer for updating PVs
