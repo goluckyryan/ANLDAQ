@@ -195,6 +195,12 @@ class triggerControlTab(templateTab):
     layout.addWidget(linkU_sele_widget, row, col, 1, 2)
     self.pvWidgetList.append(linkU_sele_widget)
 
+    row = 10
+    myriad_sele_widget = RTwoStateButton(self.FindPV("MYR_TRIGGER_TYPE_SELECT"), parent=self, color="")
+    myriad_sele_widget.SetTexts("Myriad Raw", "Myriad Gated")
+    layout.addWidget(myriad_sele_widget, row, col, 1, 2)
+    self.pvWidgetList.append(myriad_sele_widget)
+
     #*-------------------------- coincidence frame
     row = 0
     col = 12
@@ -526,6 +532,54 @@ class linkControlTab(templateTab):
       link_layout.addWidget(link, subRowIndex, 0)
       self.pvWidgetList.append(link)
       subRowIndex += 1
+
+
+    # Create a group box for Loopback Registers inside groupBox_Link
+    groupBox_loopback = QGroupBox("Loopback Registers / LVDS Pre-Emph")
+    loopback_layout = QGridLayout()
+    loopback_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_loopback.setLayout(loopback_layout)
+    link_layout.addWidget(groupBox_loopback, subRowIndex, 0)
+
+    row = 0
+    loopback_layout.addWidget(GLabel("Local loopback"), row, 0)
+    localLoopback = RLineEdit(self.FindPV("reg_SERDES_LOCAL_LE"), width=60, parent=self)
+    loopback_layout.addWidget(localLoopback, row, 1)
+    self.pvWidgetList.append(localLoopback)
+
+    loopback_layout.addWidget(GLabel("ABCD"), row, 2)
+    preABCD = RTwoStateButton(self.FindPV("PrE_0"), width=40, parent=self)
+    self.pvWidgetList.append(preABCD)
+    loopback_layout.addWidget(preABCD, row, 3)
+
+    preABCDMode = RComboBox(self.FindPV("PEABCD"), width=80, parent=self)
+    self.pvWidgetList.append(preABCDMode)
+    loopback_layout.addWidget(preABCDMode, row, 4)
+
+    row += 1
+    loopback_layout.addWidget(GLabel("Link loopback"), row, 0)
+    linkLoopback = RLineEdit(self.FindPV("reg_SERDES_LINE_LE"), width=60, parent=self)
+    loopback_layout.addWidget(linkLoopback, row, 1)
+    self.pvWidgetList.append(linkLoopback)
+
+    loopback_layout.addWidget(GLabel("EFG"), row, 2)
+    preEFG = RTwoStateButton(self.FindPV("PrE_1"), width=40, parent=self)
+    self.pvWidgetList.append(preEFG)
+    loopback_layout.addWidget(preEFG, row, 3)
+
+    preEFGMode = RComboBox(self.FindPV("PEEFG"), width=80, parent=self)
+    self.pvWidgetList.append(preEFGMode)
+    loopback_layout.addWidget(preEFGMode, row, 4)
+
+    row += 1
+    loopback_layout.addWidget(GLabel("HLRU"), row, 2)
+    preHLRU = RTwoStateButton(self.FindPV("PrE_2"), width=40, parent=self)
+    self.pvWidgetList.append(preHLRU)
+    loopback_layout.addWidget(preHLRU, row, 3)
+
+    preHLRUMode = RComboBox(self.FindPV("PEHLRU"), width=80, parent=self)
+    self.pvWidgetList.append(preHLRUMode)
+    loopback_layout.addWidget(preHLRUMode, row, 4)
 
 
     #&================ Create LRU
@@ -1048,6 +1102,59 @@ class otherControlTab(templateTab):
     self.pvWidgetList.append(fifoCount)
 
 
+    #&================ Create a group box for LED Controls
+    groupBox_ledControl = QGroupBox("LED Controls")
+    led_layout = QGridLayout()
+    led_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    groupBox_ledControl.setLayout(led_layout)
+    layout.addWidget(groupBox_ledControl, 0, 5, 2, 1)
+
+    row = 0
+    ledControl = RComboBox(self.FindPV("LEDControl"), parent=self)
+    led_layout.addWidget(ledControl, row, 0, 1, 3)
+    self.pvWidgetList.append(ledControl)
+
+    row += 1
+    led4 = RTwoStateButton(self.FindPV("LED4"), width=30, parent=self)
+    led_layout.addWidget(led4, row, 0)
+    self.pvWidgetList.append(led4)
+
+    led5 = RTwoStateButton(self.FindPV("LED5"), width=30, parent=self)
+    led_layout.addWidget(led5, row, 1)
+    self.pvWidgetList.append(led5)
+
+    led6 = RTwoStateButton(self.FindPV("LED6"), width=30, parent=self)
+    led_layout.addWidget(led6, row, 2)
+    self.pvWidgetList.append(led6)
+
+    row += 1
+    led7 = RTwoStateButton(self.FindPV("LED7"), width=30, parent=self)
+    led_layout.addWidget(led7, row, 0)
+    self.pvWidgetList.append(led7)
+
+    led8 = RTwoStateButton(self.FindPV("LED8"), width=30, parent=self)
+    led_layout.addWidget(led8, row, 1)
+    self.pvWidgetList.append(led8)
+
+    led9 = RTwoStateButton(self.FindPV("LED9"), width=30, parent=self)
+    led_layout.addWidget(led9, row, 2)
+    self.pvWidgetList.append(led9)
+
+    row += 1
+    led10 = RTwoStateButton(self.FindPV("LED10"), width=30, parent=self)
+    led_layout.addWidget(led10, row, 0)
+    self.pvWidgetList.append(led10) 
+
+    led11 = RTwoStateButton(self.FindPV("LED11"), width=30, parent=self)
+    led_layout.addWidget(led11, row, 1)
+    self.pvWidgetList.append(led11)
+
+    led12 = RTwoStateButton(self.FindPV("LED12"), width=30, parent=self)
+    led_layout.addWidget(led12, row, 2)
+    self.pvWidgetList.append(led12)
+
+
+
 
 #^###########################################################################################################
 class MTRGWindow(QMainWindow):
@@ -1236,12 +1343,41 @@ class MTRGWindow(QMainWindow):
 
     self.tabs.setCurrentWidget(self.tab5)
 
-
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
+
+    # #------------------- find all PV not used
+    # allUsedPV = set()
+    # allUsedPV.add(self.miscState.pv)
+
+    # for pvWidget in self.pvWidgetList:
+    #   if not isinstance(pvWidget, RMapTwoStateButton): 
+    #     allUsedPV.add(pvWidget.pv)
+    #   elif isinstance(pvWidget, RMapTwoStateButton):
+    #     for button in pvWidget.buttons:
+    #       for row in pvWidget.buttons:
+    #         for button in row:
+    #           allUsedPV.add(button.pv)
+
+    # for i, tab in enumerate([self.tab1, self.tab2, self.tab3, self.tab4, self.tab5]):
+    #   print(f"=========================== Tab {i}: {tab.__class__.__name__}")
+    #   for pvWidget in tab.pvWidgetList:
+    #     if not isinstance(pvWidget, RMapTwoStateButton): 
+    #       allUsedPV.add(pvWidget.pv)
+    #     elif isinstance(pvWidget, RMapTwoStateButton):
+    #       for row in pvWidget.buttons:
+    #         for button in row:
+    #           allUsedPV.add(button.pv)
+
+    # unusedPV = [pv for pv in self.board.Board_PV if pv not in allUsedPV]
+    # unusedPV = [pv for pv in unusedPV if not any(pv.name.split(":")[-1].startswith(prefix) for prefix in ["VETO_RAM", "TRIG_RAM", "SWEEP_RAM"])]
+
+    # print(f"=========================== Unused PVs: {len(unusedPV)}")
+    # for pv in unusedPV:
+    #   print(f"{pv}")
 
 
   #################################################################
