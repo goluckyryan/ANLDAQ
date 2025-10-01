@@ -42,6 +42,7 @@ from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
 
 from gui_Board import BoardPVWindow
 from gui_MTRG import MTRGWindow
+from gui_RTR import RTRWindow
 
 class MainWindow(QMainWindow):
   def __init__(self):
@@ -73,6 +74,11 @@ class MainWindow(QMainWindow):
     self.btn_Master.clicked.connect(self.OpenMasterTriggerWindow)
     grid_layout.addWidget(self.btn_Master, rowIdx, 0)
 
+    rowIdx += 1
+    self.btn_Rtr = QPushButton("RTR Board")
+    self.btn_Rtr.clicked.connect(self.OpenRTRWindow)
+    grid_layout.addWidget(self.btn_Rtr, rowIdx, 0)
+
 
     #=============================== end of GUI setup
 
@@ -81,8 +87,9 @@ class MainWindow(QMainWindow):
     self.generic_mtrg_windows = None
 
     self.mtrg_windows = None
+    self.rtr_window = None
 
-    self.OpenMasterTriggerWindow()
+    self.OpenRTRWindow()
 
   #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   def closeEvent(self, event):
@@ -98,6 +105,9 @@ class MainWindow(QMainWindow):
 
     if self.mtrg_windows is not None:
       self.mtrg_windows.close()
+
+    if self.rtr_window is not None:
+      self.rtr_window.close()
 
     event.accept()
 
@@ -152,6 +162,16 @@ class MainWindow(QMainWindow):
 
     self.mtrg_windows = MTRGWindow(MTRG_BOARD_LIST[0], MTRG1)
     self.mtrg_windows.show()
+
+  def OpenRTRWindow(self):
+    if self.rtr_window is not None:
+      self.rtr_window.show()
+      self.rtr_window.raise_()
+      self.rtr_window.activateWindow()
+      return
+
+    self.rtr_window = RTRWindow(RTR_BOARD_LIST[0], RTR1)
+    self.rtr_window.show()
 ##############################################################################
 if __name__ == "__main__":
   app = QApplication(sys.argv)

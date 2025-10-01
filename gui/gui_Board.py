@@ -174,7 +174,7 @@ class BoardPVWindow(QMainWindow):
         layout.addWidget(combo, rowIndex, colIndex + 1)
 
       else:
-        le = RLineEdit(pv, None, 100, parent=self)
+        le = RLineEdit(pv, width=100, parent=self)
         le.setProperty("idx", i)
         layout.addWidget(le, rowIndex, colIndex + 1)
 
@@ -355,6 +355,9 @@ class BoardPVWindow(QMainWindow):
     event.ignore()  # Prevent actual deletion
 
   def update_pvs(self):
+    if not self.isActiveWindow() or not self.isVisible():
+      return
+
     for i in range(len(self.centralWidget().layout())):
       widget = self.centralWidget().layout().itemAt(i).widget()
       id = widget.property("idx")

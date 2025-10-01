@@ -1389,6 +1389,9 @@ class MTRGWindow(QMainWindow):
     return None
   
   def UpdatePVs(self):
+    # if not self.isActiveWindow() or not self.isVisible():
+    #   return
+
     self.miscState.UpdatePV()
 
     for pvWidget in self.pvWidgetList:
