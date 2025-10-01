@@ -37,13 +37,20 @@ MTRG1.SetBoard_PV(MTRG_BOARD_PV)
 ############################# A GUI window
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QSpinBox, QComboBox, QPushButton
 from custom_QClasses import GLabel, GLineEdit, GFlagDisplay, GTwoStateButton
-from PyQt6.QtCore import QThread, QObject, pyqtSignal
+from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
+
+from class_PVWidgets import RTwoStateButton
+from class_PV import PV
 
 from gui_Board import BoardPVWindow
 from gui_MTRG import MTRGWindow
 from gui_RTR import RTRWindow
+from gui_DIG import DIGWindow
 
+#^#################################################################################
+#^#################################################################################
+#^#################################################################################
 class MainWindow(QMainWindow):
   def __init__(self):
     super().__init__()
@@ -70,15 +77,33 @@ class MainWindow(QMainWindow):
     grid_layout.addWidget(self.comboBox_bd, rowIdx, 1)
 
     rowIdx += 1
+
+    ACQStartStopPV = PV()
+    ACQStartStopPV.SetFullPV("Online_CS_StartStop", False, False, ["Stop", "Start"])
+
+    ACQSaveDataPV = PV()
+    ACQSaveDataPV.SetFullPV("Online_CS_SaveData", False, False, ["No Save", "Save"])
+
+    self.ACQStartStop = RTwoStateButton(ACQStartStopPV, parent=self)
+    grid_layout.addWidget(self.ACQStartStop, rowIdx, 0)
+
     self.btn_Master = QPushButton("Master Trigger Board")
     self.btn_Master.clicked.connect(self.OpenMasterTriggerWindow)
-    grid_layout.addWidget(self.btn_Master, rowIdx, 0)
+    grid_layout.addWidget(self.btn_Master, rowIdx, 1)
 
     rowIdx += 1
+
+    self.ACQSaveData = RTwoStateButton(ACQSaveDataPV, parent=self)
+    grid_layout.addWidget(self.ACQSaveData, rowIdx, 0)
+
     self.btn_Rtr = QPushButton("RTR Board")
     self.btn_Rtr.clicked.connect(self.OpenRTRWindow)
-    grid_layout.addWidget(self.btn_Rtr, rowIdx, 0)
+    grid_layout.addWidget(self.btn_Rtr, rowIdx, 1)
 
+    rowIdx += 1
+    self.btn_Dig = QPushButton("DIG Board")
+    self.btn_Dig.clicked.connect(self.OpenDIGWindow)
+    grid_layout.addWidget(self.btn_Dig, rowIdx, 1)  
 
     #=============================== end of GUI setup
 
@@ -88,10 +113,20 @@ class MainWindow(QMainWindow):
 
     self.mtrg_windows = None
     self.rtr_window = None
+    self.dig_windows = None
 
-    self.OpenRTRWindow()
+    self.OpenDIGWindow()
 
-  #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    self.timer = QTimer()
+    self.timer.timeout.connect(self.UpdatePVs)
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
+
+
+  #^###################################################################
+  #^###################################################################
+  #^###################################################################
   def closeEvent(self, event):
     print("MainWindow is closing...")
     if self.generic_board_windows is not None:
@@ -109,7 +144,15 @@ class MainWindow(QMainWindow):
     if self.rtr_window is not None:
       self.rtr_window.close()
 
+    if self.dig_windows is not None:
+      self.dig_windows.close()
+
     event.accept()
+
+
+  def UpdatePVs(self):
+    self.ACQStartStop.UpdatePV()
+    self.ACQSaveData.UpdatePV()
 
 
   def OnGenericBoardChanged(self, index):
@@ -172,6 +215,18 @@ class MainWindow(QMainWindow):
 
     self.rtr_window = RTRWindow(RTR_BOARD_LIST[0], RTR1)
     self.rtr_window.show()
+
+  def OpenDIGWindow(self):
+    if self.dig_windows is not None:
+      self.dig_windows.show()
+      self.dig_windows.raise_()
+      self.dig_windows.activateWindow()
+      return
+
+    self.dig_windows = DIGWindow(DIG_BOARD_LIST[0], DIG1)
+    self.dig_windows.show()
+
+
 ##############################################################################
 if __name__ == "__main__":
   app = QApplication(sys.argv)
