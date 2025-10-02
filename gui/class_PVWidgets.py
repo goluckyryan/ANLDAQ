@@ -21,6 +21,11 @@ class RLineEdit(GLineEdit):
       self.setReadOnly(True)
       self.setStyleSheet("color: darkgray;")
 
+    self.isCFDfraction = False
+    pvName = pv.name.split(":")[-1]
+    if pvName.startswith("CFD_fraction"):
+      self.isCFDfraction = True
+
   def UnsetfixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -45,37 +50,22 @@ class RLineEdit(GLineEdit):
   def UpdatePV(self, forced = False):
     if not isinstance(self.pv, PV):
       return
-    if self.pv.isUpdated or forced:
+    if self.pv.isUpdated or forced or self.text() == "":
       if self.hexBinDec == "hex":
         self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
         self.setText(format(int(self.pv.value), '07b'))
       else:
-        self.setText(str(self.pv.value))
+        if self.isCFDfraction:
+          self.setText(f"{self.pv.value:.3f}")
+        else:
+          self.setText(str(self.pv.value))
         
       if self.pv.ReadONLY:
         self.setStyleSheet("background-color: darkgray;")
       else:
         self.setStyleSheet("")
       self.pv.isUpdated = False
-
-class RLabelLineEdit(QWidget):
-  def __init__(self, label: str, pv: PV, isHex = False, parent=None):
-    super().__init__(parent)
-    layout = QGridLayout(self)
-    layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
-    layout.setHorizontalSpacing(2)  # Optional: small horizontal gap
-    layout.setContentsMargins(0, 0, 0, 0)  # Remove margins
-    layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-
-    self.label = GLabel(label + "  ")
-    self.lineedit = RLineEdit(pv, isHex, self)
-
-    layout.addWidget(self.label, 0, 0)
-    layout.addWidget(self.lineedit, 0, 1)
-
-  def UpdatePV(self):
-    self.lineedit.UpdatePV()
 
 class RTwoStateButton(GTwoStateButton):
   def __init__(self, pv: PV, width=None, parent=None, color="green"):
@@ -91,6 +81,8 @@ class RTwoStateButton(GTwoStateButton):
       self.color = "darkgreen"
       self.updateAppearance()
 
+    self.isInitialized = False
+
   def UnsetFixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -105,8 +97,9 @@ class RTwoStateButton(GTwoStateButton):
     self.updateAppearance()
 
   def UpdatePV(self, forced = False):
-    if self.pv.isUpdated or forced:
+    if self.pv.isUpdated or forced or not self.isInitialized:
       self.setState(bool(self.pv.value))
+      self.isInitialized = True
 
 class RSetButton(RTwoStateButton):
   def __init__(self, pv: PV, text,  parent=None, color="lightgreen"):
@@ -139,6 +132,8 @@ class RComboBox(QComboBox):
     if pv.ReadONLY:
       self.setEnabled(False)
 
+    self.isInitialized = False 
+
   def UnsetFixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -148,7 +143,7 @@ class RComboBox(QComboBox):
 
   whenIndexZero = pyqtSignal(bool)
   def UpdatePV(self, forced = False):
-    if self.pv.isUpdated or forced:
+    if self.pv.isUpdated or forced or not self.isInitialized:
       self.blockSignals(True)
       self.setCurrentIndex(int(self.pv.value))
       self.blockSignals(False)

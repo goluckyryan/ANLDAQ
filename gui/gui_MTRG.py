@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer
 from class_Board import Board
 from class_PV import PV
 from custom_QClasses import GLabel, GArrow
-from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RLabelLineEdit, RSetButton
+from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RSetButton
 from gui_RAM import RAMWindow
 import re
 
@@ -1393,8 +1393,8 @@ class MTRGWindow(QMainWindow):
     return None
   
   def UpdatePVs(self):
-    # if not self.isActiveWindow() or not self.isVisible():
-    #   return
+    if not self.isVisible():
+      return
 
     self.miscState.UpdatePV()
 

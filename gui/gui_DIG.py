@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer
 from class_Board import Board
 from class_PV import PV
 from custom_QClasses import GLabel, GLineEdit
-from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RLabelLineEdit, RSetButton, RMapLineEdit
+from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RSetButton, RMapLineEdit
 from gui_RAM import RAMWindow
 import re
 
@@ -12,6 +12,7 @@ from aux import make_pattern_list, natural_key
 
 from gui_MTRG import templateTab
 
+from gui_CH import CHWindow
 
 #^###########################################################################################################
 class DIGWindow(QMainWindow):
@@ -28,6 +29,8 @@ class DIGWindow(QMainWindow):
 
     layout = QGridLayout()
     central_widget.setLayout(layout)
+
+    self.chWindows = [ None for _ in range(board.NumChannels) ]
 
     #================================ PV Widgets
     self.pvWidgetList = []
@@ -179,9 +182,7 @@ class DIGWindow(QMainWindow):
     openChannel.addItem("None")
     for i in range(10):
       openChannel.addItem(f"Ch-{i}")
-    openChannel.currentIndexChanged.connect(lambda index:
-                                             print(f"Open Channel: {index-1}") 
-    )
+    openChannel.currentIndexChanged.connect(lambda index: self.OpenChannelWindow(index - 1))
     chTrig_layout.addWidget(openChannel, row, col + 2)
 
     #&================================ Throttle Control
@@ -272,9 +273,6 @@ class DIGWindow(QMainWindow):
     self.FillWidgets(phase_layout, phase_pvNameList, maxRows=8, widgetWidth=120)
 
     #================================= Layout of groups
-    rowIdx = 0
-    colIdx = 0
-
     layout.addWidget(groupBox_info,     0, 0, 2, 1)
     layout.addWidget(groupBox_serdes,   0, 1, 2, 1)
 
@@ -293,8 +291,16 @@ class DIGWindow(QMainWindow):
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
+    self.OpenChannelWindow(0)
+    self.chWindows[0].raise_()
 
   #################################################################
+  def closeEvent(self, a0):
+    for chWin in self.chWindows:
+      if chWin is not None:
+        chWin.close()
+    return super().closeEvent(a0) 
+
   def FindPV(self, pv_name) -> PV:
     for pv in self.board.Board_PV:
       pvName = pv.name.split(":")[-1]
@@ -309,6 +315,17 @@ class DIGWindow(QMainWindow):
         return pv
     return None
   
+  def OpenChannelWindow(self, channel : int):
+    if channel < 0 or channel >= self.board.NumChannels:
+      return
+
+    if self.chWindows[channel] is None:
+      self.chWindows[channel] = CHWindow(f"{self.board.BD_name} - Ch-{channel}", channel, self.board)
+    
+    self.chWindows[channel].show()
+    self.chWindows[channel].raise_()
+    self.chWindows[channel].activateWindow()
+
   def FillWidgets(self, layout: QGridLayout, pvNameList, maxRows = 9, widgetWidth = 100):
 
     row = 0
@@ -335,16 +352,8 @@ class DIGWindow(QMainWindow):
           row = 0
           col += 2
 
-
   def UpdatePVs(self):
-    # if not self.isActiveWindow() or not self.isVisible():
-    #   return
-
+    if not self.isVisible():
+      return
     for pvWidget in self.pvWidgetList:
       pvWidget.UpdatePV()
-
-    # current_tab = self.tabs.currentWidget()
-    # if current_tab is self.tab1:
-    #   self.tab1.UpdatePVs()
-    # elif current_tab is self.tab2:
-    #   self.tab2.UpdatePVs()
