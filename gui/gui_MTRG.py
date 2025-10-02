@@ -19,9 +19,9 @@ class templateTab(QWidget):
     self.pvWidgetList = []
 
 
-  def UpdatePVs(self):
+  def UpdatePVs(self, forced = False):
     for pvWidget in self.pvWidgetList:
-      pvWidget.UpdatePV()
+      pvWidget.UpdatePV(forced)
 
 
   def FindPV(self, pv_name) -> PV:
@@ -1342,6 +1342,10 @@ class MTRGWindow(QMainWindow):
     self.tabs.addTab(self.tab5, "Other Control")
 
     self.tabs.setCurrentWidget(self.tab5)
+
+    # Connect tab change to force PV update
+    self.tabs.currentChanged.connect(lambda idx: self.tabs.widget(idx).UpdatePVs(True)) #force the pv.isUpdate to be False, so that the pv will be displayed.
+
 
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()

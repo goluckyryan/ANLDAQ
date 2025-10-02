@@ -57,6 +57,13 @@ class MainWindow(QMainWindow):
     self.setWindowTitle("Commander")
     self.setGeometry(1000, 100, 400, 200)
 
+    self.setWindowFlags(
+      Qt.WindowType.Window |
+      Qt.WindowType.WindowMinimizeButtonHint |
+      Qt.WindowType.WindowCloseButtonHint
+    )
+
+
     central_widget = QWidget()
     self.setCentralWidget(central_widget)
 

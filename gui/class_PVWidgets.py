@@ -16,7 +16,6 @@ class RLineEdit(GLineEdit):
     if width is not None:
       self.setFixedWidth(width)
   
-
     self.returnPressed.connect(self.SetPV)
     if  pv.ReadONLY and isinstance(pv, PV)  :
       self.setReadOnly(True)
@@ -43,12 +42,12 @@ class RLineEdit(GLineEdit):
       else:
         self.pv.SetValue(float(self.text()))
 
-  def UpdatePV(self):
+  def UpdatePV(self, forced = False):
     if not isinstance(self.pv, PV):
       return
-    if self.pv.isUpdated:
+    if self.pv.isUpdated or forced:
       if self.hexBinDec == "hex":
-        self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '012X'))
+        self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
         self.setText(format(int(self.pv.value), '07b'))
       else:
@@ -105,8 +104,8 @@ class RTwoStateButton(GTwoStateButton):
     self.pv.SetValue(int(self.state))
     self.updateAppearance()
 
-  def UpdatePV(self):
-    if self.pv.isUpdated:
+  def UpdatePV(self, forced = False):
+    if self.pv.isUpdated or forced:
       self.setState(bool(self.pv.value))
 
 class RSetButton(RTwoStateButton):
@@ -148,8 +147,8 @@ class RComboBox(QComboBox):
     self.pv.SetValue(index)
 
   whenIndexZero = pyqtSignal(bool)
-  def UpdatePV(self):
-    if self.pv.isUpdated:
+  def UpdatePV(self, forced = False):
+    if self.pv.isUpdated or forced:
       self.blockSignals(True)
       self.setCurrentIndex(int(self.pv.value))
       self.blockSignals(False)
@@ -234,10 +233,10 @@ class RMapTwoStateButton(QWidget):
         row_buttons.append(btn)
       self.buttons.append(row_buttons)
 
-  def UpdatePV(self): # i know it is PVsssssss, but for consistency, drop the s
+  def UpdatePV(self, forced = True): # i know it is PVsssssss, but for consistency, drop the s
     for i in range(self.rows):
       for j in range(self.cols):
-        self.buttons[i][j].UpdatePV()
+        self.buttons[i][j].UpdatePV(forced)
 
   def SetInvertStateColor(self, isInvert: bool):
     for i in range(self.rows):
@@ -299,12 +298,10 @@ class RMapLineEdit(QWidget):
         row_lineedits.append(le)
       self.lineedits.append(row_lineedits)
 
-  def UpdatePV(self):
+  def UpdatePV(self, forced = True): # i know it is PVsssssss, but for consistency, drop the s
     for i in range(self.rows):
       for j in range(self.cols):
-        self.lineedits[i][j].UpdatePV()
-
-
+        self.lineedits[i][j].UpdatePV(forced)
 
 class RRegisterDisplay(QWidget):
   def __init__(self, pv: PV, isRTR: bool, parent=None):

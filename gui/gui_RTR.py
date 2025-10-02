@@ -498,6 +498,10 @@ class RTRWindow(QMainWindow):
 
     self.tabs.setCurrentWidget(self.tab1)
 
+    # Connect tab change to force PV update
+    self.tabs.currentChanged.connect(lambda idx: self.tabs.widget(idx).UpdatePVs(True)) #force the pv.isUpdate to be False, so that the pv will be displayed.
+
+
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
