@@ -17,12 +17,11 @@ class templateTab(QWidget):
     super().__init__(parent)
     self.board = board
     self.pvWidgetList = []
-
-
-  def UpdatePVs(self, forced = False):
-    for pvWidget in self.pvWidgetList:
-      pvWidget.UpdatePV(forced)
-
+  
+    #------------------------------ QTimer for updating PVs
+    self.timer = QTimer()
+    self.timer.timeout.connect(self.UpdatePVs)
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
   def FindPV(self, pv_name) -> PV:
     for pv in self.board.Board_PV:
@@ -31,6 +30,11 @@ class templateTab(QWidget):
         return pv
     return None
 
+  def UpdatePVs(self, forced = False):
+    if not self.isVisible():
+      return None
+    for pvWidget in self.pvWidgetList:
+      pvWidget.UpdatePV(forced)
 
 #@========================================================================================
 class triggerControlTab(templateTab):
@@ -1161,6 +1165,12 @@ class MTRGWindow(QMainWindow):
   def __init__(self, board_name, board : Board):
     super().__init__()
 
+    self.setWindowFlags(
+      Qt.WindowType.Window |
+      Qt.WindowType.WindowMinimizeButtonHint |
+      Qt.WindowType.WindowCloseButtonHint
+    )
+
     self.board = board
 
     self.setWindowTitle(board_name)
@@ -1401,15 +1411,3 @@ class MTRGWindow(QMainWindow):
     for pvWidget in self.pvWidgetList:
       pvWidget.UpdatePV()
 
-    # Only update the tab that is currently active
-    current_tab = self.tabs.currentWidget()
-    if current_tab is self.tab1:
-      self.tab1.UpdatePVs()
-    elif current_tab is self.tab2:
-      self.tab2.UpdatePVs()
-    elif current_tab is self.tab3:
-      self.tab3.UpdatePVs()
-    elif current_tab is self.tab4:
-      self.tab4.UpdatePVs()
-    elif current_tab is self.tab5:
-      self.tab5.UpdatePVs()

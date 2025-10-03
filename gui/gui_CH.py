@@ -259,6 +259,13 @@ class CHWindow(QMainWindow):
   def __init__(self, board_name, board : Board):
     super().__init__()
 
+    self.setWindowFlags(
+      Qt.WindowType.Window |
+      Qt.WindowType.WindowMinimizeButtonHint |
+      Qt.WindowType.WindowCloseButtonHint
+    )
+
+
     self.ch = 0
     self.board = board
 

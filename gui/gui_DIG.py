@@ -5,12 +5,6 @@ from class_Board import Board
 from class_PV import PV
 from custom_QClasses import GLabel, GLineEdit
 from class_PVWidgets import RRegisterDisplay, RLineEdit, RTwoStateButton, RComboBox, RMapTwoStateButton, RSetButton, RMapLineEdit
-from gui_RAM import RAMWindow
-import re
-
-from aux import make_pattern_list, natural_key
-
-from gui_MTRG import templateTab
 
 from gui_CH import CHWindow
 
@@ -18,6 +12,12 @@ from gui_CH import CHWindow
 class DIGWindow(QMainWindow):
   def __init__(self, board_name, board : Board):
     super().__init__()
+
+    self.setWindowFlags(
+      Qt.WindowType.Window |
+      Qt.WindowType.WindowMinimizeButtonHint |
+      Qt.WindowType.WindowCloseButtonHint
+    )
 
     self.board = board
     self.isACQRunning = False
