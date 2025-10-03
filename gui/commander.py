@@ -21,18 +21,29 @@ for i, bd in enumerate(MTRG_BOARD_LIST):
 print("##########################################################################")
 
 from class_Board import Board
-DIG1 = Board()
-DIG1.SetBoardID(DIG_BOARD_LIST[0])
-DIG1.SetCH_PV(10, DIG_CHANNEL_PV)
-DIG1.SetBoard_PV(DIG_BOARD_PV)
 
-RTR1 = Board()
-RTR1.SetBoardID(RTR_BOARD_LIST[0])
-RTR1.SetBoard_PV(RTR_BOARD_PV)
+DIG_List = []
+RTR_List = []
+
+for bd_name in DIG_BOARD_LIST:
+  bd = Board()
+  bd.SetBoardID(bd_name)
+  bd.SetCH_PV(10, DIG_CHANNEL_PV)
+  bd.SetBoard_PV(DIG_BOARD_PV)
+  DIG_List.append(bd)
+
+for bd_name in RTR_BOARD_LIST:
+  bd = Board()
+  bd.SetBoardID(bd_name)
+  bd.SetBoard_PV(RTR_BOARD_PV)
+  RTR_List.append(bd)
+
 
 MTRG1 = Board()
 MTRG1.SetBoardID(MTRG_BOARD_LIST[0])
 MTRG1.SetBoard_PV(MTRG_BOARD_PV)
+
+ALLBOARD = DIG_List + RTR_List + [MTRG1]
 
 ############################# A GUI window
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QSpinBox, QComboBox, QPushButton
@@ -84,6 +95,7 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.currentIndexChanged.connect(self.OnGenericBoardChanged)
     grid_layout.addWidget(self.comboBox_bd, rowIdx, 1)
 
+    #&===============================================
     rowIdx += 1
 
     ACQStartStopPV = PV()
@@ -105,24 +117,30 @@ class MainWindow(QMainWindow):
     self.ACQSaveData = RTwoStateButton(ACQSaveDataPV, parent=self)
     grid_layout.addWidget(self.ACQSaveData, rowIdx, 0)
 
-    self.btn_Rtr = QPushButton("RTR Board")
-    self.btn_Rtr.clicked.connect(self.OpenRTRWindow)
-    grid_layout.addWidget(self.btn_Rtr, rowIdx, 1)
+    self.combo_Rtr = QComboBox()
+    self.combo_Rtr.addItem("Select RTR Board")
+    self.combo_Rtr.addItems(RTR_BOARD_LIST)
+    self.combo_Rtr.setCurrentIndex(0)
+    self.combo_Rtr.currentIndexChanged.connect(lambda index : self.OpenRTRWindow(index))
+    grid_layout.addWidget(self.combo_Rtr, rowIdx, 1)
 
     rowIdx += 1
-    self.btn_Dig = QPushButton("DIG Board")
-    self.btn_Dig.clicked.connect(self.OpenDIGWindow)
-    grid_layout.addWidget(self.btn_Dig, rowIdx, 1)  
+    self.combo_Dig = QComboBox()
+    self.combo_Dig.addItem("Select DIG Board")
+    self.combo_Dig.addItems(DIG_BOARD_LIST)
+    self.combo_Dig.setCurrentIndex(0)
+    self.combo_Dig.currentIndexChanged.connect(lambda index : self.OpenDIGWindow(index))
+    grid_layout.addWidget(self.combo_Dig, rowIdx, 1)  
 
     #=============================== end of GUI setup
 
-    self.generic_board_windows = None
-    self.generic_rtr_windows = None
-    self.generic_mtrg_windows = None
+    self.totalNumBoards = len(DIG_BOARD_LIST) + len(RTR_BOARD_LIST) + len(MTRG_BOARD_LIST)
+    self.generic_board_windows = [None for _ in range(self.totalNumBoards)] 
+
 
     self.mtrg_windows = None
-    self.rtr_window = None
-    self.dig_windows = None
+    self.rtr_window = [None for _ in range(len(RTR_BOARD_LIST))]
+    self.dig_windows = [None for _ in range(len(DIG_BOARD_LIST))]
 
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
@@ -133,31 +151,28 @@ class MainWindow(QMainWindow):
       self.isACQRunning = state
       print(f"ACQStartStop changed to {state}")
 
-      if self.dig_windows is not None:
-        self.dig_windows.isACQRunning = state
+      for dig_win in self.dig_windows:
+        if dig_win is not None:
+          dig_win.isACQRunning = state
 
-  #^###################################################################
-  #^###################################################################
-  #^###################################################################
+  #&###################################################################
   def closeEvent(self, event):
     print("MainWindow is closing...")
-    if self.generic_board_windows is not None:
-      self.generic_board_windows.close()
 
-    if self.generic_rtr_windows is not None:
-      self.generic_rtr_windows.close()
-
-    if self.generic_mtrg_windows is not None:
-      self.generic_mtrg_windows.close()
+    for gen_win in self.generic_board_windows:
+      if gen_win is not None:
+        gen_win.close()
 
     if self.mtrg_windows is not None:
       self.mtrg_windows.close()
 
-    if self.rtr_window is not None:
-      self.rtr_window.close()
+    for rtr_win in self.rtr_window:
+      if rtr_win is not None:
+        rtr_win.close()
 
-    if self.dig_windows is not None:
-      self.dig_windows.close()
+    for dig_win in self.dig_windows:
+      if dig_win is not None:
+        dig_win.close()
 
     event.accept()
 
@@ -175,37 +190,17 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.setCurrentIndex(0)    
     print(f"Board changed to {index}: {bd_name}")
 
+    id = index - 1
     
-    if bd_name in DIG_BOARD_LIST:    
-      if self.generic_board_windows is not None:
-        self.generic_board_windows.show()
-        self.generic_board_windows.raise_()
-        self.generic_board_windows.activateWindow()
-        self.generic_board_windows.timer.start()  # Restart the timer
-        return
+    if self.generic_board_windows[id] is not None:
+      self.generic_board_windows[id].show()
+      self.generic_board_windows[id].raise_()
+      self.generic_board_windows[id].activateWindow()
+      self.generic_board_windows[id].timer.start()  # Restart the timer
+      return
 
-      self.generic_board_windows = BoardPVWindow(bd_name, DIG1, -1, self)
-      self.generic_board_windows.show()
-
-    elif bd_name in MTRG_BOARD_LIST:
-      if self.generic_mtrg_windows is not None:
-        self.generic_mtrg_windows.show()
-        self.generic_mtrg_windows.raise_()
-        self.generic_mtrg_windows.activateWindow()
-        return
-
-      self.generic_mtrg_windows = BoardPVWindow(bd_name, MTRG1, -1, self)
-      self.generic_mtrg_windows.show()
-
-    elif bd_name in RTR_BOARD_LIST:
-      if self.generic_rtr_windows is not None:
-        self.generic_rtr_windows.show()
-        self.generic_rtr_windows.raise_()
-        self.generic_rtr_windows.activateWindow()
-        return
-
-      self.generic_rtr_windows = BoardPVWindow(bd_name, RTR1, -1, self)
-      self.generic_rtr_windows.show()
+    self.generic_board_windows[id] = BoardPVWindow(bd_name, ALLBOARD[id], -1, self)
+    self.generic_board_windows[id].show()
 
 
   def OpenMasterTriggerWindow(self):
@@ -218,25 +213,37 @@ class MainWindow(QMainWindow):
     self.mtrg_windows = MTRGWindow(MTRG_BOARD_LIST[0], MTRG1)
     self.mtrg_windows.show()
 
-  def OpenRTRWindow(self):
-    if self.rtr_window is not None:
-      self.rtr_window.show()
-      self.rtr_window.raise_()
-      self.rtr_window.activateWindow()
+  def OpenRTRWindow(self, index):
+    if index == 0:
       return
 
-    self.rtr_window = RTRWindow(RTR_BOARD_LIST[0], RTR1)
-    self.rtr_window.show()
+    id = index - 1
+    self.combo_Rtr.setCurrentIndex(0)
 
-  def OpenDIGWindow(self):
-    if self.dig_windows is not None:
-      self.dig_windows.show()
-      self.dig_windows.raise_()
-      self.dig_windows.activateWindow()
+    if self.rtr_window[id] is not None:
+      self.rtr_window[id].show()
+      self.rtr_window[id].raise_()
+      self.rtr_window[id].activateWindow()
       return
 
-    self.dig_windows = DIGWindow(DIG_BOARD_LIST[0], DIG1)
-    self.dig_windows.show()
+    self.rtr_window[id] = RTRWindow(RTR_BOARD_LIST[id], RTR_List[id])
+    self.rtr_window[id].show()
+
+  def OpenDIGWindow(self, index):
+    if index == 0:
+      return  
+    
+    id = index - 1
+    self.combo_Dig.setCurrentIndex(0)    
+
+    if self.dig_windows[id] is not None:
+      self.dig_windows[id].show()
+      self.dig_windows[id].raise_()
+      self.dig_windows[id].activateWindow()
+      return
+
+    self.dig_windows[id] = DIGWindow(DIG_BOARD_LIST[id], DIG_List[id])
+    self.dig_windows[id].show()
 
 
 ##############################################################################
