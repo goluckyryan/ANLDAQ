@@ -20,6 +20,7 @@ class DIGWindow(QMainWindow):
     super().__init__()
 
     self.board = board
+    self.isACQRunning = False
 
     self.setWindowTitle(board_name)
     self.setGeometry(150, 150, 600, 600)
@@ -177,9 +178,9 @@ class DIGWindow(QMainWindow):
     row += 1
     col = 1
     openChannel = QPushButton("Open Channel", parent=self)
-    openChannel.setFixedHeight(40)
+    openChannel.setFixedHeight(60)
     openChannel.clicked.connect(self.OpenChannelWindow)
-    chTrig_layout.addWidget(openChannel, row, col, 1, 2)
+    chTrig_layout.addWidget(openChannel, row, col, 1, 4)
 
     #&================================ Throttle Control
     groupBox_throttle = QGroupBox("Throttle Control")
@@ -287,9 +288,6 @@ class DIGWindow(QMainWindow):
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
-    self.OpenChannelWindow()
-    self.chWindows.raise_()
-
   #################################################################
   def closeEvent(self, a0):
     if self.chWindows is not None:
@@ -350,4 +348,11 @@ class DIGWindow(QMainWindow):
     if not self.isVisible():
       return
     for pvWidget in self.pvWidgetList:
-      pvWidget.UpdatePV()
+
+      force = False
+      if self.isACQRunning:
+        pvName = pvWidget.pv.name.split(":")[-1]
+        if pvName in ["led_threshold", "channel_enable", "disc_count", "ahit_count"] :
+          force = True
+
+      pvWidget.UpdatePV(force)

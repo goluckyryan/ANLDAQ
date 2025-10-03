@@ -41,7 +41,6 @@ class ChTabTamplate(QWidget):
   def UpdatePVs(self, forced = False):
     if not self.isVisible():
       return
-
     for pvWidget in self.pvWidgetList:
       pvWidget.UpdatePV(forced)
 
@@ -198,10 +197,12 @@ class ChannelTab(ChTabTamplate):
 
 #/###########################################################
 class SettingsTabTamplate(ChTabTamplate):
-  def __init__(self, board : Board, pvNameList, width = 50, parent=None):
+  def __init__(self, board : Board, pvNameList, width = 50, forceUpdate = False, parent=None):
     super().__init__(board, parent)
     layout = QGridLayout()
     layout.setAlignment(Qt.AlignmentFlag.AlignTop| Qt.AlignmentFlag.AlignLeft)
+
+    self.forceUpdate = forceUpdate
 
     scroll_area = QScrollArea()
     scroll_area.setWidgetResizable(True)
@@ -245,6 +246,12 @@ class SettingsTabTamplate(ChTabTamplate):
 
       colIdx += 1
 
+    
+  def UpdatePVs(self, forced = False):
+    if not self.isVisible():
+      return
+
+    super().UpdatePVs(self.forceUpdate)
 
 
 #^###########################################################################################################
@@ -256,7 +263,7 @@ class CHWindow(QMainWindow):
     self.board = board
 
     self.setWindowTitle(board_name)
-    self.setGeometry(200, 200, 300, 600)
+    self.setGeometry(200, 200,650, 600)
 
     central_widget = QWidget()
     self.setCentralWidget(central_widget)
@@ -267,7 +274,6 @@ class CHWindow(QMainWindow):
     #================================ PV Widgets
     self.pvWidgetList = []
 
-    # Create a tab widget and add a "Channel" tab
     self.tabWidget = QTabWidget(parent=self)
     layout.addWidget(self.tabWidget, 0, 0, 1, 2)
 
@@ -288,19 +294,19 @@ class CHWindow(QMainWindow):
     windows_tab = SettingsTabTamplate(board, window_pvNameList, parent=self)
 
     general_pvNameList = [
-      ["channel_enable",         "Enable",              False],
-      ["trigger_polarity",       "Polarity",            False],
-      ["pileup_mode",            "Pileup",              False],
+      ["channel_enable",         "Enable",                False],
+      ["trigger_polarity",       "Polarity",              False],
+      ["pileup_mode",            "Pileup",                False],
       ["cfd_esum_mode",          "CFD\nE-Sum\nMode",      False],
-      ["CFD_fraction",           "CFD\nFrac",           False],
+      ["CFD_fraction",           "CFD\nFrac",             False],
       ["preamp_reset_delay_en",  "Preamp\nReset\nEn.",    False],   
-      ["preamp_reset_delay",     "Preamp\nReset",        False],
+      ["preamp_reset_delay",     "Preamp\nReset",         False],
       ["downsample_factor",      "Down\nSample",          False],
-      ["enable_dec_pause",       "Dec\nPause",           False],
+      ["enable_dec_pause",       "Dec\nPause",            False],
       ["trig_ts_mode",           "Trig\nTS\nMode",        False],
       ["Early_pre_m_sel",        "Early\nPre-M\nCapture", False],
       ["MultiplexWordSelect",    "Mux\nWord\nSelect",     False],
-      ["reg_channel_control",    "Control\nreg",         True ],
+      ["reg_channel_control",    "Control\nreg",          True ],
     ]
     general_tab = SettingsTabTamplate(board, general_pvNameList, width=80, parent=self)
 
@@ -311,14 +317,14 @@ class CHWindow(QMainWindow):
     extDisc_tab = SettingsTabTamplate(board, extDisc_pvNameList, width=80, parent=self)
 
     status_pvNameList = [
-      ["disc_count",           "Trigger",         False],
+      ["channel_enable",       "Enable",           False],
+      ["disc_count",           "Trigger",          False],
       ["ahit_count",           "Accepted\nTrig.",  False],
       ["accepted_event_count", "Accepted\nEvent",  False],
       ["dropped_event_count",  "Dropped\nEvent",   False],
-      ["counter_reset",        "Count\nReset",   False]
+      ["counter_reset",        "Count\nReset",     False]
     ]
-    status_tab = SettingsTabTamplate(board, status_pvNameList, width=80, parent=self)
-
+    status_tab = SettingsTabTamplate(board, status_pvNameList, width=80, forceUpdate=True, parent=self)
 
     self.tabWidget.addTab(channel_tab, "Channel")
     self.tabWidget.addTab(windows_tab, "Window Settings")

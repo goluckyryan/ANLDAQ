@@ -63,6 +63,7 @@ class MainWindow(QMainWindow):
       Qt.WindowType.WindowCloseButtonHint
     )
 
+    self.isACQRunning = False
 
     central_widget = QWidget()
     self.setCentralWidget(central_widget)
@@ -93,6 +94,7 @@ class MainWindow(QMainWindow):
 
     self.ACQStartStop = RTwoStateButton(ACQStartStopPV, parent=self)
     grid_layout.addWidget(self.ACQStartStop, rowIdx, 0)
+    self.ACQStartStop.stateChanged.connect(self.OnACQStartStopChanged)
 
     self.btn_Master = QPushButton("Master Trigger Board")
     self.btn_Master.clicked.connect(self.OpenMasterTriggerWindow)
@@ -122,14 +124,17 @@ class MainWindow(QMainWindow):
     self.rtr_window = None
     self.dig_windows = None
 
-    self.OpenDIGWindow()
-
-
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
+  
+  def OnACQStartStopChanged(self, state):
+    if self.isACQRunning != state:
+      self.isACQRunning = state
+      print(f"ACQStartStop changed to {state}")
 
-
+      if self.dig_windows is not None:
+        self.dig_windows.isACQRunning = state
 
   #^###################################################################
   #^###################################################################
