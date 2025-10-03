@@ -26,6 +26,8 @@ class RLineEdit(GLineEdit):
     if pvName.startswith("CFD_fraction"):
       self.isCFDfraction = True
 
+    self.isInitialized = False
+
   def UnsetfixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -50,7 +52,7 @@ class RLineEdit(GLineEdit):
   def UpdatePV(self, forced = False):
     if not isinstance(self.pv, PV):
       return
-    if self.pv.isUpdated or forced or self.text() == "":
+    if self.pv.isUpdated or forced or self.text() == "" or not self.isInitialized:
       if self.hexBinDec == "hex":
         self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
@@ -66,7 +68,9 @@ class RLineEdit(GLineEdit):
       else:
         self.setStyleSheet("")
       self.pv.isUpdated = False
+      self.isInitialized = True
 
+#^======================================================
 class RTwoStateButton(GTwoStateButton):
   def __init__(self, pv: PV, width=None, parent=None, color="green"):
     super().__init__(pv.States[0], pv.States[1], False, parent, color)
@@ -101,9 +105,10 @@ class RTwoStateButton(GTwoStateButton):
       self.setState(bool(self.pv.value))
       self.isInitialized = True
 
+#^======================================================
 class RSetButton(RTwoStateButton):
-  def __init__(self, pv: PV, text,  parent=None, color="lightgreen"):
-    super().__init__(pv, None, parent, color)
+  def __init__(self, pv: PV, text, width=None, parent=None, color="lightgreen"):
+    super().__init__(pv, width, parent, color)
     self.text1 = text
     self.setState(False)
   
@@ -115,7 +120,7 @@ class RSetButton(RTwoStateButton):
   def resetButton(self):
     self.setStyleSheet("")
 
-
+#^======================================================
 class RComboBox(QComboBox):
   def __init__(self, pv:PV = None, width=None, parent=None):
     super().__init__(parent)
@@ -154,7 +159,7 @@ class RComboBox(QComboBox):
         self.whenIndexZero.emit(False)
       self.setStyleSheet("")
 
-
+#^======================================================
 class RMapTwoStateButton(QWidget):
   def __init__(self, pvList, rows=10, cols=8, 
                customRowLabel = None, rowLabelLen=140, clearText = True,
@@ -238,7 +243,7 @@ class RMapTwoStateButton(QWidget):
       for j in range(self.cols):
         self.buttons[i][j].SetInvertStateColor(isInvert)
 
-
+#^======================================================
 class RMapLineEdit(QWidget):
   def __init__(self, pvList, rows=10, cols=8, customRowLabel = None, hasRowLabel = True, hasColLabel = True,  parent=None):
     super().__init__(parent)
@@ -298,6 +303,7 @@ class RMapLineEdit(QWidget):
       for j in range(self.cols):
         self.lineedits[i][j].UpdatePV(forced)
 
+#^======================================================
 class RRegisterDisplay(QWidget):
   def __init__(self, pv: PV, isRTR: bool, parent=None):
     super().__init__(parent)
@@ -319,7 +325,7 @@ class RRegisterDisplay(QWidget):
     for i, name in enumerate(items):
       layout.addWidget(GLabel(name + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, 0)
 
-      btn = GTwoStateButton("", "")
+      btn = GTwoStateButton("", "", color="green")
       btn.setFixedWidth(20)
       btn.setFixedHeight(20)
       btn.setEnabled(False)

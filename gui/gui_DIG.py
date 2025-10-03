@@ -30,35 +30,35 @@ class DIGWindow(QMainWindow):
     layout = QGridLayout()
     central_widget.setLayout(layout)
 
-    self.chWindows = [ None for _ in range(board.NumChannels) ]
+    self.chWindows = None
 
     #================================ PV Widgets
     self.pvWidgetList = []
 
     #&================================ Board Info
     pvNameList = [
-      ["regin_code_revision",            "Code Revision",     True,  "lineEdit"],
-      ["code_date",                      "Code Date",         True,  "lineEdit"],
-      ["vme_code_revision",              "VME Code Rev.",     True,  "lineEdit"],
-      ["serial_num",                     "Serial No.",        True,  "lineEdit"],
-      ["live_timestamp_msb",             "Timestamp MSB",     True,  "lineEdit"],
-      ["live_timestamp_lsb",             "Timestamp LSB",     True,  "lineEdit"],  
-      ["geo_addr",                       "Geo Addr",          False, "lineEdit"],
-      ["user_package_data",              "Board ID",          False, "lineEdit"],
-      ["fw_type",                        "FW Type",           False, "lineEdit"],
-      ["reg_led_state",                  "LED State",         True,  "lineEdit"], 
-      ["power_ok",                       "Power OK",          False, "twoState" ],
-      ["over_volt_stat",                 "Over Volt Stat",    False, "twoState" ],
-      ["under_volt_stat",                "Under Volt Stat",   False, "twoState" ],
-      ["temp0_sensor",                   "Temp Sensor 0",     False, "twoState" ],
-      ["temp1_sensor",                   "Temp Sensor 1",     False, "twoState" ],
-      ["temp2_sensor",                   "Temp Sensor 2",     False, "twoState" ],
-      ["reg_master_logic_status",        "Misc. Log. Status", True,  "lineEdit" ],
-      ["reg_sd_config",                  "SD Config",         True,  "lineEdit" ],
-      ["vme_gp_ctrl",                    "VME gp Ctrl",       True,  "lineEdit" ],
-      ["reg_external_discriminator_src", "Ext. Disc. Src",    True,  "lineEdit" ],
-      ["reg_external_disc_mode",         "Ext. Disc. Mode",   True,  "lineEdit" ],
-      ["regin_ts_err_count",             "TS Err Count",      True,  "lineEdit" ]
+      ["regin_code_revision",            "Code Revision",     True  ],
+      ["code_date",                      "Code Date",         True  ],
+      ["vme_code_revision",              "VME Code Rev.",     True  ],
+      ["serial_num",                     "Serial No.",        True  ],
+      ["live_timestamp_msb",             "Timestamp MSB",     True  ],
+      ["live_timestamp_lsb",             "Timestamp LSB",     True  ],  
+      ["geo_addr",                       "Geo Addr",          False ],
+      ["user_package_data",              "Board ID",          False ],
+      ["fw_type",                        "FW Type",           False ],
+      ["reg_led_state",                  "LED State",         True  ], 
+      ["power_ok",                       "Power OK",          False ],
+      ["over_volt_stat",                 "Over Volt Stat",    False ],
+      ["under_volt_stat",                "Under Volt Stat",   False ],
+      ["temp0_sensor",                   "Temp Sensor 0",     False ],
+      ["temp1_sensor",                   "Temp Sensor 1",     False ],
+      ["temp2_sensor",                   "Temp Sensor 2",     False ],
+      ["reg_master_logic_status",        "Misc. Log. Status", True  ],
+      ["reg_sd_config",                  "SD Config",         True  ],
+      ["vme_gp_ctrl",                    "VME gp Ctrl",       True  ],
+      ["reg_external_discriminator_src", "Ext. Disc. Src",    True  ],
+      ["reg_external_disc_mode",         "Ext. Disc. Mode",   True  ],
+      ["regin_ts_err_count",             "TS Err Count",      True  ]
     ]
 
     groupBox_info = QGroupBox("Board Info / Status")
@@ -66,20 +66,20 @@ class DIGWindow(QMainWindow):
     info_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     groupBox_info.setLayout(info_layout)
     
-    self.FillWidgets(info_layout, pvNameList, maxRows = 11, widgetWidth = 120)
+    self.FillWidgets(info_layout, pvNameList, maxRows = 11, widgetWidth = 90)
 
     #&================================ Serders Status/Control
     pvNameList = [
-      ["serdes_lock",                    "SerDes Lock",       False, "twoState" ],
-      ["serdes_sm_locked",               "SM Locked",         False, "twoState" ],
-      ["serdes_sm_lost_lock_flag",       "Lost Lock Flag",    False, "twoState" ],
-      ["sd_rx_pwr",                      "Rx Pwr",            False, "twoState" ],
-      ["sd_tx_pwr",                      "Tx Pwr",            False, "twoState" ],
-      ["sd_local_loopback_en",           "Local Loopback",    False, "twoState" ],
-      ["sd_line_loopback_en",            "Line Loopback",     False, "twoState" ],
-      ["sd_pem",                         "PEM",               False, "twoState" ],
-      ["sd_sync",                        "Sync",              False, "twoState" ],
-      ["sd_sm_stringent_lock",           "Strngnt Lock",      False, "twoState" ]
+      ["serdes_lock",                    "SerDes Lock",       False ],
+      ["serdes_sm_locked",               "SM Locked",         False ],
+      ["serdes_sm_lost_lock_flag",       "Lost Lock Flag",    False ],
+      ["sd_rx_pwr",                      "Rx Pwr",            False ],
+      ["sd_tx_pwr",                      "Tx Pwr",            False ],
+      ["sd_local_loopback_en",           "Local Loopback",    False ],
+      ["sd_line_loopback_en",            "Line Loopback",     False ],
+      ["sd_pem",                         "PEM",               False ],
+      ["sd_sync",                        "Sync",              False ],
+      ["sd_sm_stringent_lock",           "Strngnt Lock",      False ]
     ]
 
     groupBox_serdes = QGroupBox("SerDes Status/Control")
@@ -87,23 +87,23 @@ class DIGWindow(QMainWindow):
     serdes_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
     groupBox_serdes.setLayout(serdes_layout)
 
-    self.FillWidgets(serdes_layout, pvNameList, maxRows = 10, widgetWidth = 100)
+    self.FillWidgets(serdes_layout, pvNameList, maxRows = 10, widgetWidth = 90)
 
 
     #&================================ FIFO Status/Control
     pvNameList = [
-      ["master_fifo_reset",              "Master FIFO Reset",  False, "twoState" ],
-      ["fifo_a_empty",                   "FIFO A Empty",      False, "twoState" ],
-      ["fifo_b_empty",                   "FIFO B Empty",      False, "twoState" ],
-      ["fifo_a_full",                    "FIFO A Full",       False, "twoState" ],
-      ["fifo_b_full",                    "FIFO B Full",       False, "twoState" ],
-      ["fifo_fulla",                     "FIFO Full A",       False, "twoState" ],
-      ["fifo_fullb",                     "FIFO Full B",       False, "twoState" ],
-      ["fifo_almost_full",               "FIFO Almost Full",  False, "twoState" ],
-      ["ini_fifo_prog_flag",             "FIFO Prog. Flag",   False, "twoState" ],
-      ["fifo_depth",                     "FIFO Depth",        True,  "lineEdit" ],
-      ["int_FIFO_PROG_ERR",              "FIFO Prog. Err",    False, "twoState" ],
-      ["int_FIFO_PROG_FLG",              "FIFO Prog. Flg",    False, "twoState" ]
+      ["master_fifo_reset",              "Master FIFO Reset", False ],
+      ["fifo_a_empty",                   "FIFO A Empty",      False ],
+      ["fifo_b_empty",                   "FIFO B Empty",      False ],
+      ["fifo_a_full",                    "FIFO A Full",       False ],
+      ["fifo_b_full",                    "FIFO B Full",       False ],
+      ["fifo_fulla",                     "FIFO Full A",       False ],
+      ["fifo_fullb",                     "FIFO Full B",       False ],
+      ["fifo_almost_full",               "FIFO Almost Full",  False ],
+      ["ini_fifo_prog_flag",             "FIFO Prog. Flag",   False ],
+      ["fifo_depth",                     "FIFO Depth",        True  ],
+      ["int_FIFO_PROG_ERR",              "FIFO Prog. Err",    False ],
+      ["int_FIFO_PROG_FLG",              "FIFO Prog. Flg",    False ]
     ]
 
     groupBox_fifo = QGroupBox("FIFO Status/Control")
@@ -111,7 +111,7 @@ class DIGWindow(QMainWindow):
     fifo_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
     groupBox_fifo.setLayout(fifo_layout)
 
-    self.FillWidgets(fifo_layout, pvNameList, maxRows = 9, widgetWidth = 100)
+    self.FillWidgets(fifo_layout, pvNameList, maxRows = 9, widgetWidth = 90)
 
     #&================================ Channel Triggers/Controls
     groupBox_chTrig = QGroupBox("Channel Triggers/Controls")
@@ -122,14 +122,14 @@ class DIGWindow(QMainWindow):
     row = 0
     col = 0
 
-    chTrig_layout.addWidget(GLabel("Threshold", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 1)
-    chTrig_layout.addWidget(GLabel("Trigger", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 2)
-    chTrig_layout.addWidget(GLabel("Accepted", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 3)
-    chTrig_layout.addWidget(GLabel("Dn. Samp.", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 4)
+    chTrig_layout.addWidget(GLabel("Threshold", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 2)
+    chTrig_layout.addWidget(GLabel("Trigger", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 3)
+    chTrig_layout.addWidget(GLabel("Accepted", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 4)
+    chTrig_layout.addWidget(GLabel("Dn. Samp.", alignment=Qt.AlignmentFlag.AlignHCenter), row, col + 5)
 
     for i in range(10):
       row += 1
-      chTrig_layout.addWidget(GLabel(f"{i}", alignment=Qt.AlignmentFlag.AlignRight), row, col)
+      chTrig_layout.addWidget(GLabel(f"{i}"), row, col)
       pv = self.FindChannelPV(i, "channel_enable")
       if pv is not None:
         chEnable = RTwoStateButton(pv, width= 70, parent=self)
@@ -175,15 +175,11 @@ class DIGWindow(QMainWindow):
     self.pvWidgetList.append(counterMode)
 
     row += 1
-    col = 0
-    chTrig_layout.addWidget(GLabel("Open Channel", alignment=Qt.AlignmentFlag.AlignRight), row, col, 1, 2)
-    openChannel = QComboBox(parent=self)
-    openChannel.setFixedWidth(65)
-    openChannel.addItem("None")
-    for i in range(10):
-      openChannel.addItem(f"Ch-{i}")
-    openChannel.currentIndexChanged.connect(lambda index: self.OpenChannelWindow(index - 1))
-    chTrig_layout.addWidget(openChannel, row, col + 2)
+    col = 1
+    openChannel = QPushButton("Open Channel", parent=self)
+    openChannel.setFixedHeight(40)
+    openChannel.clicked.connect(self.OpenChannelWindow)
+    chTrig_layout.addWidget(openChannel, row, col, 1, 2)
 
     #&================================ Throttle Control
     groupBox_throttle = QGroupBox("Throttle Control")
@@ -192,10 +188,10 @@ class DIGWindow(QMainWindow):
     groupBox_throttle.setLayout(throttle_layout)
 
     pvNameList = [
-      ["rj45_throttle_mode", "Throttle Mode", False, "lineEdit"],
-      ["lfsr_rate_sel", "LFSR rate", False, "lineEdit"],
-      ["FIFO_Prog_Thresh", "Prog. Throttle Mode", False, "lineEdit"],
-      ["lfsr_seed", "LFSR seed", False, "lineEdit"]
+      ["rj45_throttle_mode", "Throttle Mode",       False],
+      ["lfsr_rate_sel",      "LFSR rate",           False],
+      ["FIFO_Prog_Thresh",   "Prog. Throttle Mode", False],
+      ["lfsr_seed",          "LFSR seed",           False]
     ]
     self.FillWidgets(throttle_layout, pvNameList, maxRows=8, widgetWidth=80)
 
@@ -207,70 +203,70 @@ class DIGWindow(QMainWindow):
     groupBox_control.setLayout(control_layout)
 
     control_pvNameList = [
-      ["master_logic_enable",      "Master Logic",            False, "twoState"],
-      ["CS_Ena",                   "Readout",                 False, "twoState"],
-      ["trigger_mux_select",       "Trig Mode",               False, "comboBox"],
-      ["cfd_mode",                 "CFD Mode",                False, "comboBox"],
-      ["win_comp_min",             "Comp. Win Min [us]",      False, "lineEdit"],
-      ["win_comp_max",             "Comp. Win Max [us]",      False, "lineEdit"],
-      ["veto_enable",              "Veto",                    False, "twoState"],
-      ["clk_select",               "Clock Scr",               False, "twoState"],
-      ["sd_sm_lost_lock_flag_rst", "Reset Lost Lock",         False, "twoState"],
-      ["ext_disc_ts_sel",          "Ext Disc. TS",            False, "comboBox"],
-      ["reg_downsample_holdoff",   "Reg Downsample Holdoff",  False, "lineEdit"],
-      ["diag_mux_control",         "Diag. Mux Control",       False, "comboBox"],
-      ["DIAG_WAVE_SEL",            "Diag. Wave Select",       False, "comboBox"],
-      ["EXT_DISC_REQ",             "VME Disc. Req.",          False, "twoState"]
+      ["master_logic_enable",      "Master Logic",            False],
+      ["CS_Ena",                   "Readout",                 False],
+      ["trigger_mux_select",       "Trig Mode",               False],
+      ["cfd_mode",                 "CFD Mode",                False],
+      ["win_comp_min",             "Comp. Win Min [us]",      False],
+      ["win_comp_max",             "Comp. Win Max [us]",      False],
+      ["veto_enable",              "Veto",                    False],
+      ["clk_select",               "Clock Scr",               False],
+      ["sd_sm_lost_lock_flag_rst", "Reset Lost Lock",         False],
+      ["ext_disc_ts_sel",          "Ext Disc. TS",            False],
+      ["reg_downsample_holdoff",   "Reg Downsample Holdoff",  False],
+      ["diag_mux_control",         "Diag. Mux Control",       False],
+      ["DIAG_WAVE_SEL",            "Diag. Wave Select",       False],
+      ["EXT_DISC_REQ",             "VME Disc. Req.",          False]
     ]
-    self.FillWidgets(control_layout, control_pvNameList, maxRows=14, widgetWidth=120)
+    self.FillWidgets(control_layout, control_pvNameList, maxRows=14, widgetWidth=100)
 
     #&================================ ADC Status
     adc_pvNameList = [
-      ["adc_ph_shift_overflow", "Phase Shift Overflow", False, "lineEdit"],
-      ["adc_dcm_clock_stopped", "DCM clock stopped",    False, "lineEdit"],
-      ["adc_dcm_reset",         "DCM Reset",            False, "lineEdit"],
-      ["adc_dcm_lock",          "DCM Lock",             False, "lineEdit"],
-      ["adc_dcm_ctrl_status",   "DCM Ctrl Status",      False, "lineEdit"]
+      ["adc_ph_shift_overflow", "Phase Shift Overflow", False],
+      ["adc_dcm_clock_stopped", "DCM clock stopped",    False],
+      ["adc_dcm_reset",         "DCM Reset",            False],
+      ["adc_dcm_lock",          "DCM Lock",             False],
+      ["adc_dcm_ctrl_status",   "DCM Ctrl Status",      False]
     ]
 
     groupBox_adc = QGroupBox("ADC Status")
     adc_layout = QGridLayout()
-    adc_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    adc_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
     groupBox_adc.setLayout(adc_layout)
 
-    self.FillWidgets(adc_layout, adc_pvNameList, maxRows=8, widgetWidth=120)
+    self.FillWidgets(adc_layout, adc_pvNameList, maxRows=8, widgetWidth=60)
 
     #&================================ ACQ Status
     acq_pvNameList = [
-      ["acq_ph_shift_overflow", "Phase Shift Overflow", False, "lineEdit"],
-      ["acq_dcm_clock_stopped", "DCM clock stopped",    False, "lineEdit"],
-      ["acq_dcm_reset",         "DCM Reset",            False, "lineEdit"],
-      ["acq_dcm_lock",          "DCM Lock",             False, "lineEdit"],
-      ["acq_dcm_ctrl_status",   "DCM Ctrl Status",      False, "lineEdit"]
+      ["acq_ph_shift_overflow", "Phase Shift Overflow", False],
+      ["acq_dcm_clock_stopped", "DCM clock stopped",    False],
+      ["acq_dcm_reset",         "DCM Reset",            False],
+      ["acq_dcm_lock",          "DCM Lock",             False],
+      ["acq_dcm_ctrl_status",   "DCM Ctrl Status",      False]
     ]
 
     groupBox_acq = QGroupBox("Acquisition Status")
     acq_layout = QGridLayout()
-    acq_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    acq_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
     groupBox_acq.setLayout(acq_layout)
 
-    self.FillWidgets(acq_layout, acq_pvNameList, maxRows=8, widgetWidth=120)
+    self.FillWidgets(acq_layout, acq_pvNameList, maxRows=8, widgetWidth=60)
 
     #&================================ Phase Status
     phase_pvNameList = [
-      ["ph_checking",      "Phase Check",      False, "lineEdit"],
-      ["ph_hunting_down", "Hunting Down",    False, "lineEdit"],
-      ["ph_hunting_up",   "Hunting Up",      False, "lineEdit"],
-      ["ph_failure",     "Phase Failure",    False, "lineEdit"],
-      ["ph_success",     "Phase Success",    False, "lineEdit"]
+      ["ph_checking",      "Phase Check",    False],
+      ["ph_hunting_down", "Hunting Down",    False],
+      ["ph_hunting_up",   "Hunting Up",      False],
+      ["ph_failure",     "Phase Failure",    False],
+      ["ph_success",     "Phase Success",    False]
     ]
 
     groupBox_phase = QGroupBox("Phase Status")
     phase_layout = QGridLayout()
-    phase_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    phase_layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
     groupBox_phase.setLayout(phase_layout)
 
-    self.FillWidgets(phase_layout, phase_pvNameList, maxRows=8, widgetWidth=120)
+    self.FillWidgets(phase_layout, phase_pvNameList, maxRows=8, widgetWidth=60)
 
     #================================= Layout of groups
     layout.addWidget(groupBox_info,     0, 0, 2, 1)
@@ -291,14 +287,13 @@ class DIGWindow(QMainWindow):
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
-    self.OpenChannelWindow(0)
-    self.chWindows[0].raise_()
+    self.OpenChannelWindow()
+    self.chWindows.raise_()
 
   #################################################################
   def closeEvent(self, a0):
-    for chWin in self.chWindows:
-      if chWin is not None:
-        chWin.close()
+    if self.chWindows is not None:
+      self.chWindows.close()
     return super().closeEvent(a0) 
 
   def FindPV(self, pv_name) -> PV:
@@ -315,36 +310,35 @@ class DIGWindow(QMainWindow):
         return pv
     return None
   
-  def OpenChannelWindow(self, channel : int):
-    if channel < 0 or channel >= self.board.NumChannels:
-      return
+  def OpenChannelWindow(self):
 
-    if self.chWindows[channel] is None:
-      self.chWindows[channel] = CHWindow(f"{self.board.BD_name} - Ch-{channel}", channel, self.board)
+    if self.chWindows is None:
+      self.chWindows = CHWindow(f"{self.board.BD_name} - Channel", self.board)
     
-    self.chWindows[channel].show()
-    self.chWindows[channel].raise_()
-    self.chWindows[channel].activateWindow()
+    self.chWindows.show()
+    self.chWindows.raise_()
+    self.chWindows.activateWindow()
 
   def FillWidgets(self, layout: QGridLayout, pvNameList, maxRows = 9, widgetWidth = 100):
 
     row = 0
     col = 0
 
-    for pvName, displayName, isHex, type in pvNameList:
+    for pvName, displayName, isHex in pvNameList:
       pv = self.FindPV(pvName)
       if pv is not None:
         layout.addWidget(GLabel(displayName, alignment=Qt.AlignmentFlag.AlignRight), row, col)
 
-        if type == "lineEdit":
+        if pv.NumStates() > 2:
+          pvWidget = RComboBox(pv, width= widgetWidth, parent=self)
+        elif pv.NumStates() == 2:
+          pvWidget = RTwoStateButton(pv, width= widgetWidth, parent=self)
+        else:
           if isHex:
             pvWidget = RLineEdit(pv, hexBinDec="hex", width= widgetWidth, parent=self)
-          else: 
+          else:
             pvWidget = RLineEdit(pv, width= widgetWidth, parent=self)
-        elif type == "twoState":
-          pvWidget = RTwoStateButton(pv, width= widgetWidth, parent=self)
-        elif type == "comboBox":
-          pvWidget = RComboBox(pv, width= widgetWidth, parent=self)
+
         layout.addWidget(pvWidget, row, col + 1)
         self.pvWidgetList.append(pvWidget)
         row += 1

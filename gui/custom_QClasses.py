@@ -6,14 +6,13 @@ from PyQt6.QtGui import QPainter, QPen, QPolygon
 from class_PV import PV
 import math
 
-
-#make a new GLabel class that inherits from QLabel, and always has right alignment
+#^========= make a new GLabel class that inherits from QLabel, and always has right alignment
 class GLabel(QLabel):
   def __init__(self, text, alignment = Qt.AlignmentFlag.AlignRight, parent=None):
     super().__init__(text)
     self.setAlignment(alignment | Qt.AlignmentFlag.AlignVCenter)
 
-#make a new GLineEdit class that inherits from QLineEdit. when text changed, set text color to be blue, when enter pressed, set text color to be black
+#^========= make a new GLineEdit class that inherits from QLineEdit. when text changed, set text color to be blue, when enter pressed, set text color to be black
 class GLineEdit(QLineEdit):
   def __init__(self, text, parent=None):
     super().__init__(text, parent)
@@ -26,7 +25,7 @@ class GLineEdit(QLineEdit):
   def on_return_pressed(self):
     self.setStyleSheet("")
 
-#create a class of GTwoStateButton, it has two states, when clicked, it toggles between the two states
+#^========= create a class of GTwoStateButton, it has two states, when clicked, it toggles between the two states
 class GTwoStateButton(QPushButton):
   def __init__(self, text1, text2, isInvert = False, parent=None, color="lightgreen"):
     super().__init__(text1, parent)
@@ -98,8 +97,7 @@ class GTwoStateButton(QPushButton):
     self.updateAppearance()
 
 
-
-#create a class for flag display, it has GLabel and Qpushbutton (disabled), if the flag is set, the button turns green
+#^========= create a class for flag display, it has GLabel and Qpushbutton (disabled), if the flag is set, the button turns green
 #when mouse hovers over the button, display a tooltip message based on the flag state
 class GFlagDisplay(QWidget):
   def __init__(self, label_text, fail_msg="", true_msg="", parent=None):
@@ -136,7 +134,7 @@ class GFlagDisplay(QWidget):
       self.button.setStyleSheet("")
       self.button.setToolTip(self.fail_msg)
 
-
+#^========= 
 class GArrow(QWidget):
   def __init__(self, length=50, color=Qt.GlobalColor.black, angle=0, parent=None):
     super().__init__(parent)
