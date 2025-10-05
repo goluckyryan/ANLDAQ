@@ -53,6 +53,8 @@ class RLineEdit(GLineEdit):
     if not isinstance(self.pv, PV):
       return
     if self.pv.isUpdated or forced or self.text() == "" or not self.isInitialized:
+      if self.pv.value is None:
+        return
       if self.hexBinDec == "hex":
         self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
@@ -229,7 +231,7 @@ class RMapTwoStateButton(QWidget):
         if hasRowLabel:
           layout.addWidget(btn, rowIdx, j+1)
         else: 
-          layout.addWidget(btn, rowIdx, j)
+          layout.addWidget(btn, rowIdx, jm)
         row_buttons.append(btn)
       self.buttons.append(row_buttons)
 
@@ -305,7 +307,7 @@ class RMapLineEdit(QWidget):
 
 #^======================================================
 class RRegisterDisplay(QWidget):
-  def __init__(self, pv: PV, isRTR: bool, parent=None):
+  def __init__(self, pv: PV, isRTR: bool, showRowLabel=True, parent=None):
     super().__init__(parent)
     layout = QGridLayout(self)
     layout.setVerticalSpacing(2)  # Remove vertical gaps between rows
@@ -315,17 +317,18 @@ class RRegisterDisplay(QWidget):
 
     self.pv = pv
 
-    items = ["NIM in B", "NIM in A", "R Lock", "Fast Str", "CPLD 1", "CPLD 2", "CPLD 4", "CPLD 8", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "0", "0", "All Lock", "Lock Erro"]
+    items = ["NIM in B", "NIM in A", "R Lock", "Fast Str", "CPLD 1", "CPLD 2", "CPLD 4", "CPLD 8", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "0", "0", "All Lock", "Lock Err"]
     if not isRTR:
-      items = ["NIM in B", "NIM in A", "R Lock", "Fast Str", "rsvd", "rsvd", "rsvd", "rsvd", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "Trig Veto", "0", "All Lock", "Lock Erro"]
+      items = ["NIM in B", "NIM in A", "TS roll", "Fast Str", "rsvd", "rsvd", "rsvd", "rsvd", "L init State 1", "L init State 2", "L init State 4", "L init State 8", "Trig Veto", "0", "All Lock", "Lock Err"]
 
     self.btnList = []
 
     row = 0
     for i, name in enumerate(items):
-      layout.addWidget(GLabel(name + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, 0)
+      if showRowLabel:
+        layout.addWidget(GLabel(name + "  ", alignment=Qt.AlignmentFlag.AlignRight), row, 0)
 
-      btn = GTwoStateButton("", "", color="green")
+      btn = GTwoStateButton("", "", color="darkgreen")
       btn.setFixedWidth(20)
       btn.setFixedHeight(20)
       btn.setEnabled(False)
@@ -334,8 +337,8 @@ class RRegisterDisplay(QWidget):
 
       row += 1
 
-  def UpdatePV(self):
-    if self.pv.isUpdated:
+  def UpdatePV(self, forced = True):
+    if self.pv.isUpdated or forced:
       val = int(self.pv.value)
       for i in range(16):
         state = (val >> i) & 0x1

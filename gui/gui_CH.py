@@ -22,7 +22,7 @@ class ChTabTamplate(QWidget):
     #================================ QTimer for updating PVs
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
-    self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
 
   def FindPV(self, pv_name) -> PV:
     for pv in self.board.Board_PV:
@@ -153,6 +153,8 @@ class ChannelTab(ChTabTamplate):
     layout.addWidget(general_group, rowIdx    , 2, 2, 1)
     layout.addWidget(extDisc_group, rowIdx + 2, 2, 1, 1)
 
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
   #@========================================================  
   def on_channel_changed(self, index):
     if index < 0 or index >= self.board.NumChannels:
@@ -246,6 +248,7 @@ class SettingsTabTamplate(ChTabTamplate):
 
       colIdx += 1
 
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
     
   def UpdatePVs(self, forced = False):
     if not self.isVisible():

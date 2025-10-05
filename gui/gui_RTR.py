@@ -218,6 +218,7 @@ class rtrlinkControlTab(templateTab):
     self.pvWidgetList.append(preHLRUMode)
     loopback_layout.addWidget(preHLRUMode, row, 4)
 
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
 #@=================================================================
 class rtrXYMapTab(templateTab):
@@ -267,7 +268,7 @@ class rtrXYMapTab(templateTab):
     layout.addWidget(ySel, row, col)
     self.pvWidgetList.append(ySel)
 
-
+    self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
 
 #^###########################################################################################################

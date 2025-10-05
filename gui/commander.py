@@ -39,14 +39,14 @@ for bd_name in RTR_BOARD_LIST:
   RTR_List.append(bd)
 
 
-MTRG1 = Board()
-MTRG1.SetBoardID(MTRG_BOARD_LIST[0])
-MTRG1.SetBoard_PV(MTRG_BOARD_PV)
+MTRG = Board()
+MTRG.SetBoardID(MTRG_BOARD_LIST[0])
+MTRG.SetBoard_PV(MTRG_BOARD_PV)
 
-ALLBOARD = DIG_List + RTR_List + [MTRG1]
+ALLBOARD = DIG_List + RTR_List + [MTRG]
 
 ############################# A GUI window
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QSpinBox, QComboBox, QPushButton, QGroupBox
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QTabWidget, QComboBox, QPushButton, QGroupBox
 from custom_QClasses import GLabel, GLineEdit, GFlagDisplay, GTwoStateButton
 from PyQt6.QtCore import QTimer, Qt
 from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel
@@ -58,7 +58,7 @@ from gui_Board import BoardPVWindow
 from gui_MTRG import MTRGWindow
 from gui_RTR import RTRWindow
 from gui_DIG import DIGWindow
-from gui_SYS import SYSWindow
+from gui_SYS import sysTimestampTab, sysLinktab
 
 #^#################################################################################
 #^#################################################################################
@@ -131,12 +131,19 @@ class MainWindow(QMainWindow):
 
     layout.addWidget(board_groupbox, rowIdx, 1, 3, 1)  # Span 3 rows
 
-    #@=========== System Overview
-    rowIdx = 2
-    
-    btn_SystemOverview = QPushButton("System Overview")
-    btn_SystemOverview.clicked.connect(self.ShowSystemOverview)
-    layout.addWidget(btn_SystemOverview, rowIdx, 0, 1, 1)
+    #@================== timestamp tab
+    rowIdx += 3
+    self.tabWidget = QTabWidget()
+    layout.addWidget(self.tabWidget, rowIdx, 0, 1, 2)
+
+    self.timestampTab = sysTimestampTab(MTRG, RTR_List, DIG_List)
+    self.linkTab = sysLinktab(MTRG, RTR_List)
+
+    self.tabWidget.addTab(self.timestampTab, "Timestamp")
+    self.tabWidget.addTab(self.linkTab, "Link Status")
+
+    self.tabWidget.currentChanged.connect(lambda _: self.tabWidget.currentWidget().UpdatePVs(True))
+
 
     #@=========== Generic Board Selection
     rowIdx += 1
@@ -150,9 +157,7 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.currentIndexChanged.connect(self.OnGenericBoardChanged)
     layout.addWidget(self.comboBox_bd, rowIdx, 1)
 
-
-
-    #=============================== end of GUI setup
+    #&=============================== end of GUI setup
     self.totalNumBoards = len(DIG_BOARD_LIST) + len(RTR_BOARD_LIST) + len(MTRG_BOARD_LIST)
     self.generic_board_windows = [None for _ in range(self.totalNumBoards)] 
 
@@ -165,6 +170,8 @@ class MainWindow(QMainWindow):
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
+  
   
   #&###################################################################
   def OnACQStartStopChanged(self, state):
@@ -233,7 +240,7 @@ class MainWindow(QMainWindow):
       self.mtrg_window.activateWindow()
       return
 
-    self.mtrg_window = MTRGWindow(MTRG_BOARD_LIST[0], MTRG1)
+    self.mtrg_window = MTRGWindow(MTRG_BOARD_LIST[0], MTRG)
     self.mtrg_window.show()
 
   def OpenRTRWindow(self, index):
@@ -267,16 +274,6 @@ class MainWindow(QMainWindow):
 
     self.dig_windows[id] = DIGWindow(DIG_BOARD_LIST[id], DIG_List[id])
     self.dig_windows[id].show()
-
-  def ShowSystemOverview(self):
-    if self.sys_window is not None:
-      self.sys_window.show()
-      self.sys_window.raise_()
-      self.sys_window.activateWindow()
-      return  
-
-    self.sys_window = SYSWindow(MTRG1, RTR_List, DIG_List)
-    self.sys_window.show()
 
 
 ##############################################################################

@@ -21,7 +21,7 @@ class templateTab(QWidget):
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
-    self.timer.start(500)  # Update every 1000 milliseconds (1 second
+
 
   def FindPV(self, pv_name) -> PV:
     for pv in self.board.Board_PV:
