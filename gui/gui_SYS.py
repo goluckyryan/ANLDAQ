@@ -19,7 +19,6 @@ class sysTemplateTab(QWidget):
     self.DIG_list = DIG_list
 
     self.pvWidgetList = []
-    self.forceUpdateOn = False
   
     #------------------------------ QTimer for updating PVs
     self.timer = QTimer()
@@ -36,9 +35,6 @@ class sysTemplateTab(QWidget):
     if not self.isVisible():
       return None
     for pvWidget in self.pvWidgetList:
-
-      if self.forceUpdateOn:
-        forced = True
 
       pvWidget.UpdatePV(forced)
 
@@ -156,7 +152,7 @@ class sysTimestampReadOutTab(sysTemplateTab):
     layout.addWidget(readoutGroup, 0, 1, 1, 1)
 
     #&================ Update QTimer
-    self.forceUpdateOn = True
+    # self.forceUpdateOn = True
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
 
@@ -307,4 +303,4 @@ class globalSettingTab(sysTemplateTab):
     layout = QGridLayout()
     self.setLayout(layout)
 
-    
+

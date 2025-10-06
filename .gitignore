@@ -10,9 +10,13 @@ EPICS/softIOC/dbd/xxx*
 O.linux*
 O.Common
 
+*.munch
+*.bin 
+
 All_PV.json
 
 __pycache__
 *.pyc
 
 test
+testing.py

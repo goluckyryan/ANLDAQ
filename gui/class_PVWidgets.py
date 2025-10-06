@@ -52,7 +52,7 @@ class RLineEdit(GLineEdit):
   def UpdatePV(self, forced = False):
     if not isinstance(self.pv, PV):
       return
-    if self.pv.isUpdated or forced or self.text() == "" or not self.isInitialized:
+    if self.pv.isUpdated or forced or self.text() == "" or not self.isInitialized or self.pv.ReadONLY:
       if self.pv.value is None:
         return
       if self.hexBinDec == "hex":
