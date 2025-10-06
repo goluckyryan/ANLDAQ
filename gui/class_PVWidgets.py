@@ -231,7 +231,7 @@ class RMapTwoStateButton(QWidget):
         if hasRowLabel:
           layout.addWidget(btn, rowIdx, j+1)
         else: 
-          layout.addWidget(btn, rowIdx, jm)
+          layout.addWidget(btn, rowIdx, j)
         row_buttons.append(btn)
       self.buttons.append(row_buttons)
 

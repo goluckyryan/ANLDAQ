@@ -5,7 +5,7 @@ import time
 
 from json2pv import GeneratePVLists
 
-DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST = GeneratePVLists('../ioc/All_PV.json')
+DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV = GeneratePVLists('../ioc/All_PV.json')
 
 # exit()
 
@@ -27,20 +27,20 @@ RTR_List = []
 
 for bd_name in DIG_BOARD_LIST:
   bd = Board()
-  bd.SetBoardID(bd_name)
+  bd.SetBoardName(bd_name)
   bd.SetCH_PV(10, DIG_CHANNEL_PV)
   bd.SetBoard_PV(DIG_BOARD_PV)
   DIG_List.append(bd)
 
 for bd_name in RTR_BOARD_LIST:
   bd = Board()
-  bd.SetBoardID(bd_name)
+  bd.SetBoardName(bd_name)
   bd.SetBoard_PV(RTR_BOARD_PV)
   RTR_List.append(bd)
 
 
 MTRG = Board()
-MTRG.SetBoardID(MTRG_BOARD_LIST[0])
+MTRG.SetBoardName(MTRG_BOARD_LIST[0])
 MTRG.SetBoard_PV(MTRG_BOARD_PV)
 
 ALLBOARD = DIG_List + RTR_List + [MTRG]

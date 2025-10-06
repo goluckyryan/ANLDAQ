@@ -132,14 +132,18 @@ def process_startup_and_templates(startup_file, base_dir):
 #    all_results.extend(records)
     #return all_results
 
-
+#^###########################################################################
 if __name__ == "__main__":
-  startup_path = "boot/vme99.cmd"  # file containing dbLoadRecords()
-  base_dir = "."  # directory where db templates are stored
+  bootfiles_path = "bootFiles.txt"  # file containing list of startup scripts
 
-  print(startup_path)
-
-  fileList = parse_dbloadrecords(startup_path)
+  fileList = []
+  with open(bootfiles_path, "r") as bf:
+    for line in bf:
+      startup_path = line.strip()
+      if not startup_path or startup_path.startswith("#"):
+        continue
+      print(f"Processing startup script: {startup_path}")
+      fileList.extend(parse_dbloadrecords(startup_path))
 
   #save to a JSON file
   import json
@@ -147,7 +151,8 @@ if __name__ == "__main__":
 
   all_results = []
   for file, macros in fileList:
-    if file == "db/daqCrate.template" or file == "db/asynDebug.template":
+    # if file == "db/daqCrate.template" or file == "db/asynDebug.template":
+    if file == "db/asynDebug.template":
       continue
     print("=============================")
     print(f"File: {file}, Macros: {macros}")

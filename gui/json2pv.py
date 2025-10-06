@@ -13,6 +13,8 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
   temp_MTRG_BOARD_PV = []
   temp_RTRG_BOARD_PV = []
 
+  temp_DAQ_PV = []
+
   count = 0
 
   for item in data:
@@ -124,7 +126,9 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
       temp_RTRG_BOARD_PV.append(pv)
 
+    elif "DAQ" in item[0]:
 
+      temp_DAQ_PV.append( item )
     
   # print("##########################################################################")
   # for i,  pv in enumerate(temp_DIG_CHANNEL_PV):
@@ -138,9 +142,12 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
   # for i,  pv in enumerate(temp_MTRG_BOARD_PV):
   #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
+
+  # for i,  pv in enumerate(temp_DAQ_PV):
+  #   print(f"{i:03d} | {pv[0]:50s} | {pv[1]}")
   print("##########################################################################")
 
-  return temp_DIG_CHANNEL_PV, temp_DIG_BOARD_PV, temp_RTRG_BOARD_PV, temp_MTRG_BOARD_PV
+  return temp_DIG_CHANNEL_PV, temp_DIG_BOARD_PV, temp_RTRG_BOARD_PV, temp_MTRG_BOARD_PV, temp_DAQ_PV  
 
 
 #========================== check the pv[1] and reformate if needed
@@ -156,13 +163,19 @@ def FormatPVList(temp_PV_list):
   Board_list = []
 
   for i, pv in enumerate(temp_PV_list):
+    if ":" in pv[0]:
 
-    pvName = pv[0].split(":")[-1]
+      pvName = pv[0].split(":")[-1]
+      bdName = ":".join(pv[0].split(":")[:-1])
 
-    bdName = ":".join(pv[0].split(":")[:-1])
+      if bdName not in Board_list:
+        Board_list.append(bdName)
 
-    if bdName not in Board_list:
-      Board_list.append(bdName)
+    else:
+
+      pvName = pv[0]
+      bdName = ""
+
 
     # if pvName != "reg_MISC_STAT"  and pvName != "reg_MISC_STAT_REG":
     #   if pvName.startswith("reg_") or pvName.startswith("regin_"):
@@ -199,12 +212,13 @@ def FormatPVList(temp_PV_list):
       PV_obj.SetReadONLY(False)
 
     PV_list.append(PV_obj)
-  
+
+        
   return PV_list, Board_list
 
 #========================== Finally generate the PV lists
 def GeneratePVLists(file_path='../ioc/All_PV.json'):
-  temp_DIG_CHANNEL_PV, temp_DIG_BOARD_PV, temp_RTRG_BOARD_PV, temp_MTRG_BOARD_PV = load_pv_json(file_path)
+  temp_DIG_CHANNEL_PV, temp_DIG_BOARD_PV, temp_RTRG_BOARD_PV, temp_MTRG_BOARD_PV, temp_DAQ_PV = load_pv_json(file_path)
 
   DIG_CHANNEL_PV, _ = FormatPVList(temp_DIG_CHANNEL_PV)
   DIG_BOARD_PV, DIG_BOARD_LIST = FormatPVList(temp_DIG_BOARD_PV)
@@ -212,11 +226,14 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   RTR_BOARD_PV, RTR_BOARD_LIST = FormatPVList(temp_RTRG_BOARD_PV)
   MTRG_BOARD_PV, MTRG_BOARD_LIST = FormatPVList(temp_MTRG_BOARD_PV)
 
+  DAQ_PV, _ = FormatPVList(temp_DAQ_PV)
+
   #------ sort PV_list based on the PV name
   DIG_CHANNEL_PV.sort(key=lambda pv: pv.name)
   DIG_BOARD_PV.sort(key=lambda pv: pv.name)
   RTR_BOARD_PV.sort(key=lambda pv: pv.name)
   MTRG_BOARD_PV.sort(key=lambda pv: pv.name)
+  DAQ_PV.sort(key=lambda pv: pv.name)
 
   # for i,  pv in enumerate(DIG_CHANNEL_PV):
   #   print(f"{i:03d} | {pv}")
@@ -236,9 +253,15 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   #     continue
   #   print(f"{i:03d} | {count:03d} | {pv}")
   #   count += 1
+
+
+  for i,  pv in enumerate(DAQ_PV):
+    print(f"{i:03d} | {pv}")
+
+
   # print("##########################################################################")
 
-  return DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST
+  return DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV
 
 
 

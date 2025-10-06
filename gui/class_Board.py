@@ -12,7 +12,7 @@ class Board():
 
     self.CH_PV = None  # CH_PV[channel][pv_index]
 
-  def SetBoardID(self, bd_name):
+  def SetBoardName(self, bd_name):
     self.BD_name = bd_name
 
   def SetCH_PV(self, nCh, ch_pv_list):
