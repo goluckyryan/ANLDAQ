@@ -58,7 +58,7 @@ from gui_Board import BoardPVWindow
 from gui_MTRG import MTRGWindow
 from gui_RTR import RTRWindow
 from gui_DIG import DIGWindow
-from gui_SYS import sysTimestampTab, sysLinktab
+from gui_SYS import sysTimestampReadOutTab, sysLinktab, globalSettingTab
 
 #^#################################################################################
 #^#################################################################################
@@ -106,6 +106,17 @@ class MainWindow(QMainWindow):
 
     layout.addWidget(acq_groupbox, rowIdx, 0, 2, 1)  # Span 2 rows
 
+    #@=========== Script ComboBox
+    rowIdx += 2
+    self.script_combo = QComboBox()
+    self.script_combo.addItem("Select Script")
+    self.script_combo.addItem("Link system")
+    self.script_combo.addItem("Reset all boards")
+
+    self.script_combo.setCurrentIndex(0)
+    self.script_combo.currentIndexChanged.connect(self.OnScriptChanged)
+    layout.addWidget(self.script_combo, rowIdx, 0)
+
     #@=========== GroupBox for Board Selection
     board_groupbox = QGroupBox("Board Selection")
     board_layout = QGridLayout()
@@ -129,6 +140,7 @@ class MainWindow(QMainWindow):
     self.combo_Dig.currentIndexChanged.connect(lambda index : self.OpenDIGWindow(index))
     board_layout.addWidget(self.combo_Dig, 2, 0)
 
+    rowIdx = 0
     layout.addWidget(board_groupbox, rowIdx, 1, 3, 1)  # Span 3 rows
 
     #@================== timestamp tab
@@ -136,14 +148,15 @@ class MainWindow(QMainWindow):
     self.tabWidget = QTabWidget()
     layout.addWidget(self.tabWidget, rowIdx, 0, 1, 2)
 
-    self.timestampTab = sysTimestampTab(MTRG, RTR_List, DIG_List)
+    self.timestampTab = sysTimestampReadOutTab(MTRG, RTR_List, DIG_List)
     self.linkTab = sysLinktab(MTRG, RTR_List)
+    self.globalSettingTab = globalSettingTab(MTRG, RTR_List, DIG_List)
 
-    self.tabWidget.addTab(self.timestampTab, "Timestamp")
+    self.tabWidget.addTab(self.timestampTab, "Timestamp/ReadOut")
     self.tabWidget.addTab(self.linkTab, "Link Status")
+    self.tabWidget.addTab(self.globalSettingTab, "Global Settings")
 
     self.tabWidget.currentChanged.connect(lambda _: self.tabWidget.currentWidget().UpdatePVs(True))
-
 
     #@=========== Generic Board Selection
     rowIdx += 1
@@ -274,6 +287,18 @@ class MainWindow(QMainWindow):
 
     self.dig_windows[id] = DIGWindow(DIG_BOARD_LIST[id], DIG_List[id])
     self.dig_windows[id].show()
+
+  def OnScriptChanged(self, index):
+    if index == 0:
+      return
+    
+    script_name = self.script_combo.currentText()
+    self.script_combo.setCurrentIndex(0)    
+
+    if script_name == "Link system":
+      pass
+    elif script_name == "Reset all boards":
+      pass
 
 
 ##############################################################################
