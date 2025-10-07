@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer
 from class_Board import Board
 from class_PV import PV
 from custom_QClasses import GLabel, GLineEdit
-from class_PVWidgets import RLineEdit, RTwoStateButton, RMapTwoStateButton, RRegisterDisplay
+from class_PVWidgets import RLineEdit, RTwoStateButton, RMapTwoStateButton, RRegisterDisplay, RComboBox
 
 from aux import make_pattern_list
 import re
@@ -64,9 +64,9 @@ class sysTimestampReadOutTab(sysTemplateTab):
     row += 1
     groupLayout.addWidget(GLabel("MTRG"), row, 0)
 
-    le_mtrg_timeA = RLineEdit(self.FindPV("reg_TIMESTAMP_A",self.MTRG),  hexBinDec = "hex")
-    le_mtrg_timeB = RLineEdit(self.FindPV("reg_TIMESTAMP_B",self.MTRG),  hexBinDec = "hex")
-    le_mtrg_timeC = RLineEdit(self.FindPV("reg_TIMESTAMP_C",self.MTRG),  hexBinDec = "hex")
+    le_mtrg_timeA = RLineEdit(self.FindPV("reg_TIMESTAMP_A",self.MTRG),  hexBinDec = "hex", width=90)
+    le_mtrg_timeB = RLineEdit(self.FindPV("reg_TIMESTAMP_B",self.MTRG),  hexBinDec = "hex", width=90)
+    le_mtrg_timeC = RLineEdit(self.FindPV("reg_TIMESTAMP_C",self.MTRG),  hexBinDec = "hex", width=90)
     mtrg_clk_src = RTwoStateButton(self.FindPV("ClkSrc", self.MTRG))
 
     self.pvWidgetList.append(le_mtrg_timeA)
@@ -85,9 +85,9 @@ class sysTimestampReadOutTab(sysTemplateTab):
     for i, rtr in enumerate(self.RTR_list):
       groupLayout.addWidget(GLabel(f"RTR-{i}"), row, 0)
 
-      le_rtr_timeA = RLineEdit(self.FindPV("reg_TIMESTAMP_A", rtr), hexBinDec = "hex")
-      le_rtr_timeB = RLineEdit(self.FindPV("reg_TIMESTAMP_B", rtr), hexBinDec = "hex")
-      le_rtr_timeC = RLineEdit(self.FindPV("reg_TIMESTAMP_C", rtr), hexBinDec = "hex")
+      le_rtr_timeA = RLineEdit(self.FindPV("reg_TIMESTAMP_A", rtr), hexBinDec = "hex", width=90)
+      le_rtr_timeB = RLineEdit(self.FindPV("reg_TIMESTAMP_B", rtr), hexBinDec = "hex", width=90)
+      le_rtr_timeC = RLineEdit(self.FindPV("reg_TIMESTAMP_C", rtr), hexBinDec = "hex", width=90)
       rtr_clk_src = RTwoStateButton(self.FindPV("ClkSrc", rtr))
 
       self.pvWidgetList.append(le_rtr_timeA)
@@ -106,8 +106,8 @@ class sysTimestampReadOutTab(sysTemplateTab):
     for i, dig in enumerate(self.DIG_list):
       groupLayout.addWidget(GLabel(f"DIG-{i}"), row, 0)
 
-      le_dig_timeA = RLineEdit(self.FindPV("live_timestamp_msb", dig), hexBinDec = "hex")
-      le_dig_timeB = RLineEdit(self.FindPV("live_timestamp_lsb", dig), hexBinDec = "hex")
+      le_dig_timeA = RLineEdit(self.FindPV("live_timestamp_msb", dig), hexBinDec = "hex", width=90)
+      le_dig_timeB = RLineEdit(self.FindPV("live_timestamp_lsb", dig), hexBinDec = "hex", width=90)
       dig_clk_src = RTwoStateButton(self.FindPV("clk_select", dig))
 
       self.pvWidgetList.append(le_dig_timeA)
@@ -138,7 +138,7 @@ class sysTimestampReadOutTab(sysTemplateTab):
 
     row += 1
     readoutLayout.addWidget(GLabel("MTRG FIFO"), row, 0)
-    mtrg_fifo_Ena = RTwoStateButton(self.FindPV("FifoNum", self.MTRG))
+    mtrg_fifo_Ena = RComboBox(self.FindPV("FifoNum", self.MTRG))
     self.pvWidgetList.append(mtrg_fifo_Ena)
     readoutLayout.addWidget(mtrg_fifo_Ena, row, 1)
 
@@ -173,7 +173,7 @@ class sysLinktab(sysTemplateTab):
     groupLayout.addWidget(GLabel("MTRG", alignment=Qt.AlignmentFlag.AlignRight), 0, 0)
     mtr_status = RRegisterDisplay(self.FindPV("reg_MISC_STAT", self.MTRG), isRTR = False)
     self.pvWidgetList.append(mtr_status)
-    groupLayout.addWidget(mtr_status, 1, 0, 10, 1)
+    groupLayout.addWidget(mtr_status, 1, 0, 10, 1, Qt.AlignmentFlag.AlignRight)
 
     for i, rtr in enumerate(self.RTR_list):
       if i == 0 :
@@ -183,7 +183,7 @@ class sysLinktab(sysTemplateTab):
       showRowLabel = (i == 0)
       rtr_status = RRegisterDisplay(self.FindPV("reg_MISC_STAT_REG", rtr), isRTR = True, showRowLabel = showRowLabel)
       self.pvWidgetList.append(rtr_status)
-      groupLayout.addWidget(rtr_status, 1, i+1, 10, 1)
+      groupLayout.addWidget(rtr_status, 1, i+1, 10, 1, Qt.AlignmentFlag.AlignRight)
 
     layout.addWidget(linkStatusGroup, 0, 0, 3, 1)
 

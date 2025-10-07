@@ -26,8 +26,6 @@ class RLineEdit(GLineEdit):
     if pvName.startswith("CFD_fraction"):
       self.isCFDfraction = True
 
-    self.isInitialized = False
-
   def UnsetfixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -52,9 +50,9 @@ class RLineEdit(GLineEdit):
   def UpdatePV(self, forced = False):
     if not isinstance(self.pv, PV):
       return
-    if self.pv.isUpdated or forced or self.text() == "" or not self.isInitialized or self.pv.ReadONLY:
-      if self.pv.value is None:
-        return
+    if self.pv.value is None:
+      return
+    if self.pv.isUpdated or forced or self.text() == "" or self.text() != str(self.pv.value):
       if self.hexBinDec == "hex":
         self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
@@ -70,7 +68,6 @@ class RLineEdit(GLineEdit):
       else:
         self.setStyleSheet("")
       self.pv.isUpdated = False
-      self.isInitialized = True
 
 #^======================================================
 class RTwoStateButton(GTwoStateButton):
@@ -87,8 +84,6 @@ class RTwoStateButton(GTwoStateButton):
       self.color = "darkgreen"
       self.updateAppearance()
 
-    self.isInitialized = False
-
   def UnsetFixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -103,9 +98,11 @@ class RTwoStateButton(GTwoStateButton):
     self.updateAppearance()
 
   def UpdatePV(self, forced = False):
-    if self.pv.isUpdated or forced or not self.isInitialized:
+    if self.pv.value is None:
+      return
+
+    if self.pv.isUpdated or forced or self.state != bool(self.pv.value):
       self.setState(bool(self.pv.value))
-      self.isInitialized = True
 
 #^======================================================
 class RSetButton(RTwoStateButton):
@@ -139,8 +136,6 @@ class RComboBox(QComboBox):
     if pv.ReadONLY:
       self.setEnabled(False)
 
-    self.isInitialized = False 
-
   def UnsetFixedWidth(self):
     self.setMinimumWidth(0)
     self.setMaximumWidth(1000)
@@ -150,7 +145,10 @@ class RComboBox(QComboBox):
 
   whenIndexZero = pyqtSignal(bool)
   def UpdatePV(self, forced = False):
-    if self.pv.isUpdated or forced or not self.isInitialized:
+    if self.pv.value is None or isinstance(self.pv.value, float):
+      return
+
+    if self.pv.isUpdated or forced or self.currentIndex() != int(self.pv.value):
       self.blockSignals(True)
       self.setCurrentIndex(int(self.pv.value))
       self.blockSignals(False)
@@ -342,4 +340,5 @@ class RRegisterDisplay(QWidget):
       val = int(self.pv.value)
       for i in range(16):
         state = (val >> i) & 0x1
-        self.btnList[i].setState(state)
+        if state != self.btnList[i].state:
+          self.btnList[i].setState(state)

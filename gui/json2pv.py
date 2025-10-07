@@ -128,6 +128,12 @@ def load_pv_json(file_path='../ioc/All_PV.json'):
 
     elif "DAQ" in item[0]:
 
+      if "Trace" in item[0]:
+        continue
+
+      if "inLoop" in item[0]:
+        continue  
+
       temp_DAQ_PV.append( item )
     
   # print("##########################################################################")
@@ -163,18 +169,22 @@ def FormatPVList(temp_PV_list):
   Board_list = []
 
   for i, pv in enumerate(temp_PV_list):
+
+    isDAQ_PV = False
+
     if ":" in pv[0]:
 
       pvName = pv[0].split(":")[-1]
       bdName = ":".join(pv[0].split(":")[:-1])
 
-      if bdName not in Board_list:
-        Board_list.append(bdName)
-
     else:
 
-      pvName = pv[0]
-      bdName = ""
+      pvName = "_".join(pv[0].split("_")[1:])
+      bdName = pv[0].split("_")[0]
+      isDAQ_PV = True
+
+    if bdName not in Board_list:
+      Board_list.append(bdName)
 
 
     # if pvName != "reg_MISC_STAT"  and pvName != "reg_MISC_STAT_REG":
@@ -191,6 +201,7 @@ def FormatPVList(temp_PV_list):
     if pvName == "reg_FIFO_RESETS" :
       PV_obj.AddState("0")
       PV_obj.AddState("1")
+
 
     field_names = [x for x in pv[1]]
     field_value = [pv[1][x] for x in pv[1]]
@@ -211,8 +222,10 @@ def FormatPVList(temp_PV_list):
       PV_obj.SetRBVExist(True)
       PV_obj.SetReadONLY(False)
 
-    PV_list.append(PV_obj)
+    if isDAQ_PV:
+      PV_obj.SetReadONLY(True)
 
+    PV_list.append(PV_obj)
         
   return PV_list, Board_list
 
@@ -226,7 +239,7 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   RTR_BOARD_PV, RTR_BOARD_LIST = FormatPVList(temp_RTRG_BOARD_PV)
   MTRG_BOARD_PV, MTRG_BOARD_LIST = FormatPVList(temp_MTRG_BOARD_PV)
 
-  DAQ_PV, _ = FormatPVList(temp_DAQ_PV)
+  DAQ_PV, DAQ_LIST = FormatPVList(temp_DAQ_PV)
 
   #------ sort PV_list based on the PV name
   DIG_CHANNEL_PV.sort(key=lambda pv: pv.name)
@@ -254,14 +267,13 @@ def GeneratePVLists(file_path='../ioc/All_PV.json'):
   #   print(f"{i:03d} | {count:03d} | {pv}")
   #   count += 1
 
-
-  for i,  pv in enumerate(DAQ_PV):
-    print(f"{i:03d} | {pv}")
+  # for i,  pv in enumerate(DAQ_PV):
+  #   print(f"{i:03d} | {pv}")
 
 
   # print("##########################################################################")
 
-  return DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV
+  return DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV, DAQ_LIST
 
 
 

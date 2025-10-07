@@ -83,31 +83,36 @@ putenv("EPICS_TS_MIN_WEST=360")
 dbLoadRecords("db/MTrigRegisters.template",   "CRATE=99,BOARD=MTRG")
 dbLoadRecords("db/RTrigRegisters.template",   "CRATE=99,BOARD=RTR1")
 dbLoadRecords("db/MDigRegisters.template",    "CRATE=99,BOARD=MDIG1")
+dbLoadRecords("db/MDigRegisters.template",    "CRATE=99,BOARD=MDIG2")
 taskDelay(100)
 
 ########## Load EPICS databases for field-of-register-level PVs of modules within this crate
 dbLoadRecords("db/MTrigUser.template",        "CRATE=99,BOARD=MTRG")
 dbLoadRecords("db/RTrigUser.template",        "CRATE=99,BOARD=RTR1")
 dbLoadRecords("db/MDigUser.template",         "CRATE=99,BOARD=MDIG1")
+dbLoadRecords("db/MDigUser.template",         "CRATE=99,BOARD=MDIG2")
 taskDelay(100)
 
 ########## Load EPICS databases for VME FPGA register-level PVs of modules within this crate
 dbLoadRecords("db/MDigRegistersVME.template",    "CRATE=99,BOARD=MDIG1")
+dbLoadRecords("db/MDigRegistersVME.template",    "CRATE=99,BOARD=MDIG2")
 taskDelay(100)
 
 ########## Load EPICS databases for VME FPGA field-of-register-level PVs of modules within this crate
 dbLoadRecords("db/MDigUserVME.template",         "CRATE=99,BOARD=MDIG1")
+dbLoadRecords("db/MDigUserVME.template",         "CRATE=99,BOARD=MDIG2")
 taskDelay(100)
 
 
 ########## Load EPICS database of generic debugging PVs (peek/poke)
 ## For the debug PVs, additional parameters are required, and the BOARD is always "DBG" for "debug".
-dbLoadRecords("db/asynDebug.template",        "CRATE=99,BOARD=DBG,ADDR=0,TIMEOUT=1")
-taskDelay(100)
+#dbLoadRecords("db/asynDebug.template",        "CRATE=99,BOARD=DBG,ADDR=0,TIMEOUT=1")
+#taskDelay(100)
 
 ##### Load EPICS database of per-slot readout enable process variables; required in every crate that does readout.
 dbLoadRecords("db/daqSegment2.template",      "CRATE=99,BOARD=MTRG")
 dbLoadRecords("db/daqSegment2.template",      "CRATE=99,BOARD=MDIG1")
+dbLoadRecords("db/daqSegment2.template",      "CRATE=99,BOARD=MDIG2")
 taskDelay(100)
 
 ##### Load EPICS database of per-crate process variables used by inLoop, outLoop and MiniSender
@@ -140,6 +145,7 @@ InitializeDaqBoardStructure()
 
 ##MDIG1, is Board #0, is in Slot #2
 asynDigitizerConfig("MDIG1",0,2)
+asynDigitizerConfig("MDIG2",1,4)
 ##RTR1, is Board #4, is in Slot #6
 asynTrigRouterConfig1("RTR1",4,6)
 ##MTRG, is Board #5, is in Slot #7
@@ -176,6 +182,7 @@ setupFIFOReader()
 ##
 
 dbpf "VME99:MDIG1:user_package_data","160"
+dbpf "VME99:MDIG2:user_package_data","161"
 dbpf "VME99:MTRG:USER_PACKAGE_DATA","162"
 
 ## and finally, start up the DAQ programs themselves (inLoop, outLoop and MiniSender).
@@ -190,7 +197,7 @@ dbpf "VME99:MTRG:USER_PACKAGE_DATA","162"
 ## For example, B3=X will cause inLoop to look for the PV name X_CS_Ena
 ## 
 ## 
-seq &inLoop,"CRATE=99,B0=MDIG1,B1=X,B2=X,B3=X,B4=X,B5=MTRG,B6=X"
+seq &inLoop,"CRATE=99,B0=MDIG1,B1=MIG2,B2=X,B3=X,B4=X,B5=MTRG,B6=X"
 taskDelay(100)
 seq &outLoop,"CRATE=99"
 taskDelay(100)

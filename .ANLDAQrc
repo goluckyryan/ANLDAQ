@@ -2,7 +2,7 @@
 export ANLDAQ_DIR=/home/ryan/ANLDAQ/
 export SYSTEM="SlopeBox"
 
-#============
+#=================================== SYSTEM settings
 if [ ${SYSTEM} == "DXA" ]; then
   export EPICS_CA_SERVER_PORT=5072
   export EPICS_CA_REPEATER_PORT=5073
@@ -10,7 +10,7 @@ fi
 
 if [ ${SYSTEM} == "SlopeBox" ]; then
   #export EPICS_CA_ADDR_LIST="vme99.onenet 192.168.203.28"
-  export EPICS_CA_ADDR_LIST="192.168.203.75 vme99.onenet"
+  export EPICS_CA_ADDR_LIST="192.168.203.75 vme99.onenet" # 75 is ryan's PC
   export EPICS_CA_AUTO_ADDR_LIST=NO
   export EPICS_CA_SERVER_PORT=5074
   export EPICS_CA_REPEATER_PORT=5075

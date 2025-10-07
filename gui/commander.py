@@ -5,7 +5,7 @@ import time
 
 from json2pv import GeneratePVLists
 
-DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV = GeneratePVLists('../ioc/All_PV.json')
+DIG_CHANNEL_PV, DIG_BOARD_PV, RTR_BOARD_PV, MTRG_BOARD_PV, DIG_BOARD_LIST, RTR_BOARD_LIST, MTRG_BOARD_LIST, DAQ_PV, DAQ_LIST = GeneratePVLists('../ioc/All_PV.json')
 
 # exit()
 
@@ -17,6 +17,9 @@ for i, bd in enumerate(RTR_BOARD_LIST):
 
 for i, bd in enumerate(MTRG_BOARD_LIST):
   print(f"MTRG Board {i:>2d}: {bd}")
+
+for i, bd in enumerate(DAQ_LIST):
+  print(f"DAQ  {i:>2d}: {bd}")
 
 print("##########################################################################")
 
@@ -38,12 +41,19 @@ for bd_name in RTR_BOARD_LIST:
   bd.SetBoard_PV(RTR_BOARD_PV)
   RTR_List.append(bd)
 
-
 MTRG = Board()
 MTRG.SetBoardName(MTRG_BOARD_LIST[0])
 MTRG.SetBoard_PV(MTRG_BOARD_PV)
 
-ALLBOARD = DIG_List + RTR_List + [MTRG]
+DAQ_List = []
+
+for bd_name in DAQ_LIST:
+  bd = Board()
+  bd.SetBoardName(bd_name)
+  bd.SetBoard_PV(DAQ_PV, isDAQ=True)
+  DAQ_List.append(bd)
+
+ALLBOARD = DIG_List + RTR_List + [MTRG] + DAQ_List
 
 ############################# A GUI window
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QTabWidget, QComboBox, QPushButton, QGroupBox
@@ -166,12 +176,13 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.addItems(DIG_BOARD_LIST)
     self.comboBox_bd.addItems(RTR_BOARD_LIST)
     self.comboBox_bd.addItems(MTRG_BOARD_LIST)
+    self.comboBox_bd.addItems(DAQ_LIST)
     self.comboBox_bd.setCurrentIndex(0)
     self.comboBox_bd.currentIndexChanged.connect(self.OnGenericBoardChanged)
     layout.addWidget(self.comboBox_bd, rowIdx, 1)
 
     #&=============================== end of GUI setup
-    self.totalNumBoards = len(DIG_BOARD_LIST) + len(RTR_BOARD_LIST) + len(MTRG_BOARD_LIST)
+    self.totalNumBoards = len(ALLBOARD)
     self.generic_board_windows = [None for _ in range(self.totalNumBoards)] 
 
     self.mtrg_window = None

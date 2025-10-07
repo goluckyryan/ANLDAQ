@@ -30,7 +30,7 @@ class Board():
         pv_ch.AddCallback()
         self.CH_PV[i].append(pv_ch)
 
-  def SetBoard_PV(self, board_pv):
+  def SetBoard_PV(self, board_pv, isDAQ = False):
     self.Board_PV = []
     for pv in board_pv:
 
@@ -41,7 +41,12 @@ class Board():
         continue
       
       pv_b = copy(pv)
-      pv_b.SetName(f"{self.BD_name}:{pv.name}")
+
+      if isDAQ:
+        pv_b.SetName(f"{self.BD_name}_{pv.name}")
+      else:
+        pv_b.SetName(f"{self.BD_name}:{pv.name}")
+
       pv_b.AddCallback()
       self.Board_PV.append(pv_b)
         
