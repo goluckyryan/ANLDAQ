@@ -19,7 +19,7 @@ for i, bd in enumerate(MTRG_BOARD_LIST):
   print(f"MTRG Board {i:>2d}: {bd}")
 
 for i, bd in enumerate(DAQ_LIST):
-  print(f"DAQ  {i:>2d}: {bd}")
+  print(f"       DAQ {i:>2d}: {bd}")
 
 print("##########################################################################")
 
@@ -114,18 +114,7 @@ class MainWindow(QMainWindow):
     self.ACQSaveData = RTwoStateButton(ACQSaveDataPV, parent=self)
     acq_layout.addWidget(self.ACQSaveData, 1, 0)
 
-    layout.addWidget(acq_groupbox, rowIdx, 0, 2, 1)  # Span 2 rows
-
-    #@=========== Script ComboBox
-    rowIdx += 2
-    self.script_combo = QComboBox()
-    self.script_combo.addItem("Select Script")
-    self.script_combo.addItem("Link system")
-    self.script_combo.addItem("Reset all boards")
-
-    self.script_combo.setCurrentIndex(0)
-    self.script_combo.currentIndexChanged.connect(self.OnScriptChanged)
-    layout.addWidget(self.script_combo, rowIdx, 0)
+    layout.addWidget(acq_groupbox, rowIdx, 0, 1, 1)  
 
     #@=========== GroupBox for Board Selection
     board_groupbox = QGroupBox("Board Selection")
@@ -151,14 +140,40 @@ class MainWindow(QMainWindow):
     board_layout.addWidget(self.combo_Dig, 2, 0)
 
     rowIdx = 0
-    layout.addWidget(board_groupbox, rowIdx, 1, 3, 1)  # Span 3 rows
+    layout.addWidget(board_groupbox, rowIdx, 1, 2, 1)  # Span 3 rows
+
+    #@================== Other GroupBox
+    other_groupbox = QGroupBox("Others")
+    other_layout = QGridLayout()
+    other_groupbox.setLayout(other_layout)
+
+    self.script_combo = QComboBox()
+    self.script_combo.addItem("Select Script")
+    self.script_combo.addItem("Link system")
+    self.script_combo.addItem("Reset all boards")
+
+    self.script_combo.setCurrentIndex(0)
+    self.script_combo.currentIndexChanged.connect(self.OnScriptChanged)
+    other_layout.addWidget(self.script_combo, 0, 0)
+
+    self.terminal_combo = QComboBox()
+    self.terminal_combo.addItem("Open Terminal")
+    self.terminal_combo.addItem("Soft IOC")
+    for i in range(len(DAQ_LIST)):
+      self.terminal_combo.addItem(f"IOC-{i}")
+    self.terminal_combo.setCurrentIndex(0)
+    self.terminal_combo.currentIndexChanged.connect(self.OnOpenTerminal)
+    other_layout.addWidget(self.terminal_combo, 1, 0)
+
+    rowIdx = 0
+    layout.addWidget(other_groupbox, rowIdx, 2, 2, 1)
 
     #@================== timestamp tab
     rowIdx += 3
     self.tabWidget = QTabWidget()
-    layout.addWidget(self.tabWidget, rowIdx, 0, 1, 2)
+    layout.addWidget(self.tabWidget, rowIdx, 0, 1, 3)
 
-    self.timestampTab = sysTimestampReadOutTab(MTRG, RTR_List, DIG_List)
+    self.timestampTab = sysTimestampReadOutTab(MTRG, RTR_List, DIG_List, DAQ_List)
     self.linkTab = sysLinktab(MTRG, RTR_List)
     self.globalSettingTab = globalSettingTab(MTRG, RTR_List, DIG_List)
 
@@ -311,6 +326,29 @@ class MainWindow(QMainWindow):
     elif script_name == "Reset all boards":
       pass
 
+  def OnOpenTerminal(self, index):
+    if index == 0:
+      return
+    
+    term_name = self.terminal_combo.currentText()
+    self.terminal_combo.setCurrentIndex(0)    
+    print(f"Open terminal: {term_name}")
+
+    if term_name == "Soft IOC":
+      import os
+      #TODO
+      os.system("gnome-terminal -- bash -c 'cd ../scripts; ./terminal S; exec bash'")
+      return
+
+    if term_name.startswith("IOC-"):
+      id = int(term_name.split("-")[-1])
+      if id < 0 or id >= len(DAQ_LIST):
+        print(f"Invalid DAQ id: {id}")
+        return
+      
+      import os
+      os.system(f"gnome-terminal -- bash -c 'cd ../scripts; ./terminal {id}; exec bash'")
+      return
 
 ##############################################################################
 if __name__ == "__main__":

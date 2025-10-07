@@ -11,12 +11,13 @@ import re
 
 #^###########################################################################################################
 class sysTemplateTab(QWidget):
-  def __init__(self, MTRG : Board, RTR_list, DIG_list, parent=None):
+  def __init__(self, MTRG : Board, RTR_list, DIG_list, DAQ_list, parent=None):
     super().__init__(parent)
 
     self.MTRG = MTRG
     self.RTR_list = RTR_list
     self.DIG_list = DIG_list
+    self.DAQ_list = DAQ_list
 
     self.pvWidgetList = []
   
@@ -24,9 +25,12 @@ class sysTemplateTab(QWidget):
     self.timer = QTimer()
     self.timer.timeout.connect(self.UpdatePVs)
 
-  def FindPV(self, pv_name, board : Board) -> PV:
+  def FindPV(self, pv_name, board : Board, isDAQ = False) -> PV:
     for pv in board.Board_PV:
-      pvName = pv.name.split(":")[-1]
+      if isDAQ:
+        pvName = "_".join(pv.name.split("_")[1:])
+      else:
+        pvName = pv.name.split(":")[-1]
       if pvName == pv_name:
         return pv
     return None
@@ -40,8 +44,8 @@ class sysTemplateTab(QWidget):
 
 #@===================================================================================
 class sysTimestampReadOutTab(sysTemplateTab):
-  def __init__(self, MTRG : Board, RTR_list, DIG_list, parent=None):
-    super().__init__(MTRG, RTR_list, DIG_list, parent)
+  def __init__(self, MTRG : Board, RTR_list, DIG_list, DAQ_list, parent=None):
+    super().__init__(MTRG, RTR_list, DIG_list, DAQ_list, parent)
 
     layout = QGridLayout()
     layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
@@ -55,7 +59,7 @@ class sysTimestampReadOutTab(sysTemplateTab):
 
     row = 0
 
-    groupLayout.addWidget(QLabel("Imp Sync"), row, 2)
+    groupLayout.addWidget(GLabel("Imp Sync", alignment=Qt.AlignmentFlag.AlignRight), row, 2)
     btn_ImpSync = RTwoStateButton(self.FindPV("IMP_SYNC", self.MTRG))
     self.pvWidgetList.append(btn_ImpSync)
     groupLayout.addWidget(btn_ImpSync, row, 3)
@@ -151,15 +155,44 @@ class sysTimestampReadOutTab(sysTemplateTab):
 
     layout.addWidget(readoutGroup, 0, 1, 1, 1)
 
+    #&=========================== Create a group box for TCP transfer
+    tcpipGroup = QGroupBox("TCP Transfer")
+    tcpipLayout = QGridLayout()
+    tcpipLayout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+    tcpipGroup.setLayout(tcpipLayout)
+
+    row = 0
+    tcpipLayout.addWidget(GLabel("Buffers", alignment=Qt.AlignmentFlag.AlignHCenter), row, 1)
+    tcpipLayout.addWidget(GLabel("Send Buffs", alignment=Qt.AlignmentFlag.AlignHCenter), row, 2)
+    tcpipLayout.addWidget(GLabel("TCP Rate"), row, 3)
+
+    for i, daq in enumerate(self.DAQ_list):
+      row += 1
+      tcpipLayout.addWidget(GLabel(f"IOC-{i}"), row, 0)
+      
+      buffersAvail = RLineEdit(self.FindPV("CV_BuffersAvail", daq, isDAQ=True))
+      self.pvWidgetList.append(buffersAvail)
+      tcpipLayout.addWidget(buffersAvail, row, 1)
+
+      sendBuffer = RLineEdit(self.FindPV("CV_NumSendBuffers", daq, isDAQ=True))
+      self.pvWidgetList.append(sendBuffer)
+      tcpipLayout.addWidget(sendBuffer, row, 2)
+
+      sendRate = RLineEdit(self.FindPV("CV_SendRate", daq, isDAQ=True))
+      self.pvWidgetList.append(sendRate)
+      tcpipLayout.addWidget(sendRate, row, 3)
+
+
+    layout.addWidget(tcpipGroup, 1, 0, 1, 1)
+
     #&================ Update QTimer
-    # self.forceUpdateOn = True
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
 
 #@===================================================================================
 class sysLinktab(sysTemplateTab):
   def __init__(self, MTRG : Board, RTR_list, parent=None):
-    super().__init__(MTRG, RTR_list, None, parent)
+    super().__init__(MTRG, RTR_list, None, None, parent)
 
     layout = QGridLayout()
     self.setLayout(layout)
@@ -298,7 +331,7 @@ class sysLinktab(sysTemplateTab):
 #@===================================================================================
 class globalSettingTab(sysTemplateTab):
   def __init__(self, MTRG : Board, RTR_list, DIG_list, parent=None):
-    super().__init__(MTRG, RTR_list, DIG_list, parent)
+    super().__init__(MTRG, RTR_list, DIG_list, None, parent)
 
     layout = QGridLayout()
     self.setLayout(layout)
