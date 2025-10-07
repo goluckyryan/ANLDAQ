@@ -52,7 +52,14 @@ class RLineEdit(GLineEdit):
       return
     if self.pv.value is None:
       return
-    if self.pv.isUpdated or forced or self.text() != str(self.pv.value):
+    
+    if self.pv.ReadONLY and self.text() != str(self.pv.value):
+      forced = True
+
+    if not self.hasFocus() and self.text() != str(self.pv.value):
+      forced = True
+
+    if self.pv.isUpdated or forced:
       if self.hexBinDec == "hex":
         self.setText(format(int(self.pv.value) & 0xFFFFFFFF, '08X'))
       elif self.hexBinDec == "bin":
@@ -100,8 +107,11 @@ class RTwoStateButton(GTwoStateButton):
   def UpdatePV(self, forced = False):
     if self.pv.value is None:
       return
+    
+    if not self.hasFocus() and self.state != bool(self.pv.value):
+      forced = True
 
-    if self.pv.isUpdated or forced or self.state != bool(self.pv.value):
+    if self.pv.isUpdated or forced:
       self.setState(bool(self.pv.value))
 
 #^======================================================
@@ -147,8 +157,11 @@ class RComboBox(QComboBox):
   def UpdatePV(self, forced = False):
     if self.pv.value is None or isinstance(self.pv.value, float):
       return
+    
+    if not self.hasFocus() and self.currentIndex() != int(self.pv.value):
+      forced = True
 
-    if self.pv.isUpdated or forced or self.currentIndex() != int(self.pv.value):
+    if self.pv.isUpdated or forced:
       self.blockSignals(True)
       self.setCurrentIndex(int(self.pv.value))
       self.blockSignals(False)
