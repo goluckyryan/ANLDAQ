@@ -14,6 +14,13 @@ cd ANLDAQ
 git submodule update --init --recursive
 ```
 
+# Required packages or Library
+
+```sh
+apt install python3-pyqt6 python3-pyepics
+```
+
+
 ## EPICS
 
 The EPICS can be downloaded from the web, place the base into EPICS folder.

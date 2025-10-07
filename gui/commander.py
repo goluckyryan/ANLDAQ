@@ -185,7 +185,7 @@ class MainWindow(QMainWindow):
 
     #@=========== Generic Board Selection
     rowIdx += 1
-    layout.addWidget(GLabel("Generic Board:"), rowIdx, 0)
+    layout.addWidget(GLabel("Generic Board:"), rowIdx, 1)
     self.comboBox_bd = QComboBox()
     self.comboBox_bd.addItem("Select Board")
     self.comboBox_bd.addItems(DIG_BOARD_LIST)
@@ -194,7 +194,7 @@ class MainWindow(QMainWindow):
     self.comboBox_bd.addItems(DAQ_LIST)
     self.comboBox_bd.setCurrentIndex(0)
     self.comboBox_bd.currentIndexChanged.connect(self.OnGenericBoardChanged)
-    layout.addWidget(self.comboBox_bd, rowIdx, 1)
+    layout.addWidget(self.comboBox_bd, rowIdx, 2)
 
     #&=============================== end of GUI setup
     self.totalNumBoards = len(ALLBOARD)
@@ -322,8 +322,10 @@ class MainWindow(QMainWindow):
     self.script_combo.setCurrentIndex(0)    
 
     if script_name == "Link system":
+      print("Link system script is not implemented yet.")
       pass
     elif script_name == "Reset all boards":
+      print("Reset all boards script is not implemented yet.")
       pass
 
   def OnOpenTerminal(self, index):
