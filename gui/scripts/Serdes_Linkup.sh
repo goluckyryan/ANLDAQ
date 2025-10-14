@@ -1,8 +1,8 @@
 #!/bin/bash -l
 
-cd ${2}		##2nd arg to this is the path to scripts ($EDMSCRIPTS)
+SCRIPT_DIR=${ANLDAQ_DIR}/gui/scripts
 
-
+SYSTEM_DEFINE_FILE="./VME99_SYSTEM_DEFINES.sh"
 
 #####################################################################
 #
@@ -29,53 +29,15 @@ cd ${2}		##2nd arg to this is the path to scripts ($EDMSCRIPTS)
 ##		   EVERYTHING IN THE SCRIPT SHOULD USE 'breakout' PVs.
 #####################################################################
 
-#####################################################################
-##	EDIT LOG
-##
-##	20220906: split this big script into subsidiary scripts.
-##	20230331: moved this and its subscripts to /global/ioc/gui/scripts.  Modified files to match new system wiring.
-#####################################################################
-
+cd ${SCRIPT_DIR}
 
 ##===================================================================
 ## System definition area
 ##
 ##	Bash variables define how many boards are connected where.
 ##===================================================================
-echo "Loading system parameters from DGS_SYSTEM_DEFINES.sh"
-source ./VME99_SYSTEM_DEFINES.sh
-
-if [ -z "$1" ];		##test for no argument specified.
-	then
-	echo "no configuration file specified, defaulting to DGS_CONFIG.sh"
-	SYSTEM_CONFIG_FILE="./VME99_CONFIG.sh"
-else
-	echo "Using specified configuration file $1"
-	SYSTEM_CONFIG_FILE=$1
-fi
-
-source ./${SYSTEM_CONFIG_FILE}
-
-
-if [ -z "${SCRIPT_LOG_FILE}" ];		##test for non-specification of redirection string
-	then
-	echo "script log file defined as ${SCRIPT_LOG_FILE}, set to ${SCRIPT_LOG_FILE}"
-	SCRIPT_LOG_FILE="${SCRIPT_LOG_FILE}"
-fi
-
-## This echo ensures that the script log file is opened in addition to providing a header.
-## all other redirects are ">>" to append in this and all subsidiary files.
-echo "Trigger linkup script started" > ${SCRIPT_LOG_FILE}
-
-
-caput Setup_Script_State 7 >> ${SCRIPT_LOG_FILE}		##sets PV displaying setup state to SCRIPT_RUNNING
-caput ScriptStage 0 >> ${SCRIPT_LOG_FILE}				##sets PV displaying setup stage to 0
-
-
-##==================================================================
-##	PROGRAMMING HINTS AT END OF THIS FILE INCLUDING USEFUL TEMPLATES
-##==================================================================
-
+echo "Loading system parameters from ${SYSTEM_DEFINE_FILE}"
+source ./${SYSTEM_DEFINE_FILE}
 
 
 ##===================================================================
@@ -85,13 +47,11 @@ caput ScriptStage 0 >> ${SCRIPT_LOG_FILE}				##sets PV displaying setup stage to
 ##	malice aforethought mangled the setup of the board to maximum degree.
 ##===================================================================
 
-./trig_setup_Stage1.sh $SYSTEM_CONFIG_FILE ${2}
+./trig_setup_Stage1.sh $SYSTEM_DEFINE_FILE ${SCRIPT_DIR}
 if [ $? != 0 ]; then
 	echo "trig setup Stage 1 failure"
-	caput ScriptStage -1 >> ${SCRIPT_LOG_FILE}					##error halt, so stage is set to -1
 	exit
 fi
-
 
 ##===================================================================
 ##  STAGE 2: Initialize Routers to receive data from master and send SYNC back to master.
@@ -99,13 +59,13 @@ fi
 ##  from the master trigger.
 ##===================================================================
 
-./trig_setup_Stage2.sh $SYSTEM_CONFIG_FILE ${2}
+./trig_setup_Stage2.sh $SYSTEM_DEFINE_FILE ${SCRIPT_DIR}
 if [ $? != 0 ]; then
 	echo "trig setup Stage 2 failure"
-	caput ScriptStage -1 >> ${SCRIPT_LOG_FILE}					##error halt, so stage is set to -1
 	exit
 fi
 
+exit
 
 ##===================================================================
 ##	STAGE 3: with all trigger boards turned on, all links set up and all drivers enabled,

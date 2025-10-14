@@ -46,7 +46,7 @@ class PV():
   def NumStates(self) -> int:
     return len(self.States)
 
-  def SetValue(self, value, sync = False):    
+  def SetValue(self, value, sync = False, debug=True):
     if self.ReadONLY:
       return
     
@@ -56,7 +56,8 @@ class PV():
 
     self.value = p.value
     self.char_value = p.char_value
-    print(f"PV::SetValue() {self.name} now is {self.value}, {self.char_value}")
+    if debug:
+      print(f"PV::SetValue() {self.name} now is {self.value}, {self.char_value}")
  
 
   def GetValue(self, fromEPICS=False) -> str:

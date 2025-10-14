@@ -192,17 +192,19 @@ if (( SCRIPT_VERBOSITY > 0 )); then
 fi
 caput ScriptStage 4.5 >> ${SCRIPT_LOG_FILE}    ##inform user we have entered stage 4.5
 
-caput GLBL:DIG:clk_select 1
-caput GLBL:DIG:clk_select 0
+# caput GLBL:DIG:clk_select 1
+# caput GLBL:DIG:clk_select 0
 
-#caput VME12:MDIG1:clk_select 1
-#caput VME12:MDIG1:clk_select 0
-#caput VME12:SDIG1:clk_select 1
-#caput VME12:SDIG1:clk_select 0
-#caput VME12:MDIG2:clk_select 1
-#caput VME12:MDIG2:clk_select 0
-#caput VME12:SDIG2:clk_select 1
-#caput VME12:SDIG2:clk_select 0
+caput VME99:MDIG1:clk_select 1
+caput VME99:MDIG1:clk_select 0
+caput VME99:MDIG2:clk_select 1
+caput VME99:MDIG2:clk_select 0
+# caput VME12:SDIG1:clk_select 1
+# caput VME12:SDIG1:clk_select 0
+# caput VME12:MDIG2:clk_select 1
+# caput VME12:MDIG2:clk_select 0
+# caput VME12:SDIG2:clk_select 1
+# caput VME12:SDIG2:clk_select 0
 
 ## The above step will cause a glitch in the digitizer-to-router connection, so also
 ## go through and hit retry, then ack, on all the router link-init machines
@@ -274,11 +276,13 @@ caput ScriptStage 4.7 >> ${SCRIPT_LOG_FILE}    ##inform user we have entered sta
 caput -t ${MT_VME_LEADER}:MTRG:IMP_SYNC 1 >> ${SCRIPT_LOG_FILE} 
 caput -t ${MT_VME_LEADER}:MTRG:IMP_SYNC 0 >> ${SCRIPT_LOG_FILE} 
 
-caput -t GLBL:DIG:sd_sm_lost_lock_flag_rst 1 >> ${SCRIPT_LOG_FILE} 
-caput -t GLBL:DIG:sd_sm_lost_lock_flag_rst 0 >> ${SCRIPT_LOG_FILE} 
+# caput -t GLBL:DIG:sd_sm_lost_lock_flag_rst 1 >> ${SCRIPT_LOG_FILE} 
+# caput -t GLBL:DIG:sd_sm_lost_lock_flag_rst 0 >> ${SCRIPT_LOG_FILE} 
 
-#caput VME12:MDIG1:sd_sm_lost_lock_flag_rst 1
-#caput VME12:MDIG1:sd_sm_lost_lock_flag_rst 0
+caput VME99:MDIG1:sd_sm_lost_lock_flag_rst 1
+caput VME99:MDIG1:sd_sm_lost_lock_flag_rst 0
+caput VME99:MDIG2:sd_sm_lost_lock_flag_rst 1
+caput VME99:MDIG2:sd_sm_lost_lock_flag_rst 0
 #caput VME12:SDIG1:sd_sm_lost_lock_flag_rst 1
 #caput VME12:SDIG1:sd_sm_lost_lock_flag_rst 0
 #caput VME12:MDIG2:sd_sm_lost_lock_flag_rst 1

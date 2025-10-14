@@ -70,6 +70,8 @@ from gui_RTR import RTRWindow
 from gui_DIG import DIGWindow
 from gui_SYS import sysTimestampReadOutTab, sysLinktab, globalSettingTab
 
+from link_sys import LinkSys
+
 #^#################################################################################
 #^#################################################################################
 #^#################################################################################
@@ -211,7 +213,6 @@ class MainWindow(QMainWindow):
     self.timer.start(500)  # Update every 1000 milliseconds (1 second
 
   
-  
   #&###################################################################
   def OnACQStartStopChanged(self, state):
     if self.isACQRunning != state:
@@ -323,7 +324,23 @@ class MainWindow(QMainWindow):
 
     if script_name == "Link system":
       print("Link system script is not implemented yet.")
-      pass
+
+      linkMap = [
+        ["A", "MASKED", 0],
+        ["B", "MASKED", 0],
+        ["C", "MASKED", 0],
+        ["D", "RTR1",   0],
+        ["E", "MASKED", 0],
+        ["F", "MASKED", 0],
+        ["G", "MASKED", 0],
+        ["H", "MASKED", 0]
+      ]
+      link_sys = LinkSys(MTRG, RTR_List, DIG_List )
+      link_sys.Set_MTRG_LINK_MAP(linkMap)
+
+      link_sys.Stage1_Setup("local")
+
+      
     elif script_name == "Reset all boards":
       print("Reset all boards script is not implemented yet.")
       pass

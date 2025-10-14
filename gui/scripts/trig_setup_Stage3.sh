@@ -1,25 +1,15 @@
 #!/bin/bash -l
-echo "TRIG SETUP STAGE 3 SCRIPT BEGINS"
+echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> TRIG SETUP STAGE 3 SCRIPT BEGINS"
 
-cd ${2}        ##2nd arg to this is the path to scripts ($EDMSCRIPTS)
-
-echo "Loading system parameters from VME99_SYSTEM_DEFINES.sh"
-source ./DGS_SYSTEM_DEFINES.sh
-
-if [ -z "$1" ];        ##test for no argument specified.z
-    then
-    if (( SCRIPT_VERBOSITY > 1 )); then
-        echo "no configuration file specified, defaulting to DGS_CONFIG.sh"
-    fi
-    SYSTEM_CONFIG_FILE="./DGS_CONFIG.sh"
-else
-    if (( SCRIPT_VERBOSITY > 1 )); then
-        echo "Using specified configuration file $1"
-    fi
-    SYSTEM_CONFIG_FILE=$1
-fi
-
-source ./${SYSTEM_CONFIG_FILE}
+##===================================================================
+## System definition area
+##
+##    Bash variables define how many boards are connected where.
+##===================================================================
+SYSTEM_DEFINE_FILE=${1}
+cd ${2}        ##2nd arg to this is the path to scripts 
+echo "Loading system parameters from ${SYSTEM_DEFINE_FILE}"
+source ./${SYSTEM_DEFINE_FILE}
 
 ##===================================================================
 ##    STAGE 3: with all trigger boards turned on, all links set up and all drivers enabled,
